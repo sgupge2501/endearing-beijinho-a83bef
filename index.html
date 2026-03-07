@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AutoFit</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        <header>
+            <h1>AutoFit</h1>
+            <div id="streak-info" class="streak-badge" style="display: none;"></div>
+        </header>
+        
+        <div id="selection-screen">
+            <div class="card guide-card">
+                <details>
+                    <summary>💡 初心者ガイド：順番と休憩のコツ</summary>
+                    <div class="guide-content">
+                        <section>
+                            <h4>1. 筋トレの理想的な順番</h4>
+                            <p>「大きい筋肉」から先に鍛えるのが鉄則です。<br>（脚 → 背中 → 胸 → 肩 → 腕 → 腹筋）</p>
+                        </section>
+                        <section>
+                            <h4>2.「種目ごと」の推奨休憩時間</h4>
+                            <ul>
+                                <li><strong>スクワット等（多関節種目）:</strong> しっかり<strong>3分(180秒)</strong></li>
+                                <li><strong>エクステンション等（単関節種目）:</strong> <strong>60〜90秒</strong></li>
+                            </ul>
+                        </section>
+                        <section>
+                            <h4>3. 部位ごとの「超回復時間」</h4>
+                            <ul>
+                                <li><strong>大きな筋肉（脚・背中）:</strong> 約72時間</li>
+                                <li><strong>中くらいの筋肉（胸・肩）:</strong> 約48時間</li>
+                                <li><strong>小さな筋肉（腕・腹筋）:</strong> 約24時間</li>
+                            </ul>
+                        </section>
+                    </div>
+                </details>
+            </div>
+
+            <div class="section-title">
+                <h2>部位を選択 / 編集</h2>
+            </div>
+
+            <div id="recommend-area" class="recommend-container" style="display: none;">
+                <button id="select-ready-parts-btn" class="recommend-btn">✨ 超回復済みを一括選択！</button>
+            </div>
+
+            <div id="button-grid" class="grid-container"></div>
+            
+            <div id="inline-edit-area" class="card edit-card" style="display: none;">
+                <div class="edit-header">
+                    <h3 id="edit-part-title">部位名</h3>
+                    <button id="close-edit-btn" class="close-btn">✕</button>
+                </div>
+                <div class="add-row-container">
+                    <div class="add-row">
+                        <input type="text" id="new-exercise-input" placeholder="種目名">
+                        <input type="number" id="new-exercise-rest" placeholder="秒" min="0">
+                        <button id="add-exercise-btn" class="mini-btn">追加</button>
+                    </div>
+                </div>
+                <ul id="edit-exercise-list" class="manage-list"></ul>
+            </div>
+
+            <button id="start-roulette" class="main-btn btn-blue">メニューを作成する</button>
+        </div>
+
+        <div id="roulette-screen" style="display: none;">
+            <div id="selected-list"></div>
+            
+            <div id="roulette-result-area" style="display:none;">
+                <div class="card exercise-main-card">
+                    <div class="card-header-row">
+                        <span class="now-label">NOW TRAINING</span>
+                        <h3 id="result-exercise-name">---</h3>
+                    </div>
+                    
+                    <div id="target-area">
+                        <span class="label">前回の記録</span>
+                        <ul id="last-sets-list"></ul>
+                    </div>
+
+                    <div class="memo-area">
+                        <textarea id="exercise-memo" placeholder="フォームの注意点やメモを残す..." class="memo-input"></textarea>
+                    </div>
+                </div>
+
+                <div class="card timer-card">
+                    <div class="timer-header">
+                        <div id="workout-status" class="status-badge">READY</div>
+                        <div id="set-counter">第 1 セット</div>
+                    </div>
+                    <div id="timer-display">00:00</div>
+                    
+                    <button id="skip-rest-btn" class="skip-rest-link" style="display: none;">休憩をスキップ ⏩</button>
+
+                    <div class="action-area">
+                        <button id="set-start-btn" class="main-btn btn-green">セット開始！</button>
+                        
+                        <div id="record-input-area" style="display: none;">
+                            <div class="input-row">
+                                <input type="number" id="actual-weight" placeholder="0" step="0.5" min="0">
+                                <span class="unit">kg ×</span>
+                                <input type="number" id="actual-reps" placeholder="0" min="0">
+                                <span class="unit">回</span>
+                            </div>
+                            <button id="set-end-record-btn" class="main-btn btn-red">記録して休憩</button>
+                        </div>
+                    </div>
+
+                    <div id="rpe-selection-area" class="rpe-section" style="display: none;">
+                        <p class="rpe-instruction">👇 <strong>次の休憩時間を計算するため、今のセットのキツさを選んでください！</strong></p>
+                        <div class="button-group">
+                            <button class="rpe-btn" data-mod="0.8">余裕</button>
+                            <button class="rpe-btn" data-mod="1.0">普通</button>
+                            <button class="rpe-btn" data-mod="1.3">限界</button>
+                        </div>
+                    </div>
+
+                    <div id="session-history" style="display: none;">
+                        <ul id="history-list"></ul>
+                    </div>
+                </div>
+
+                <div class="multi-action-area">
+                    <button id="next-exercise-btn" class="main-btn btn-orange">別の種目へ</button>
+                    <button id="complete-part-btn" class="main-btn btn-blue-outline">この部位を完了</button>
+                </div>
+            </div>
+
+            <div id="workout-finish-area" class="finish-nav">
+                <button id="all-complete-btn" class="main-btn btn-gold">本日のトレーニング終了</button>
+                <button id="back-btn" class="text-link-btn">← 中断</button>
+            </div>
+        </div>
+
+        <div id="finish-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2>部位完了！</h2>
+                <button id="modal-close-btn" class="main-btn btn-blue">次のSTEPへ</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
