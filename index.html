@@ -5,39 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AutoFit</title>
     <style>
-        /* --- デザイン設定 --- */
+        /* === 1. アプリ全体の基本デザイン === */
         :root {
-            --bg: #f3f4f6;
-            --card-white: #ffffff;
-            --primary: #2563eb;
-            --green: #10b981;
-            --red: #ef4444;
-            --text: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
+            --bg: #f3f4f6; --card-white: #ffffff; --primary: #2563eb;
+            --green: #10b981; --red: #ef4444; --text: #1f2937;
+            --text-muted: #6b7280; --border: #e5e7eb;
         }
-
-        body { 
-            background-color: var(--bg); color: var(--text); 
-            font-family: -apple-system, sans-serif; margin: 0; padding: 0;
-        }
-
+        body { background-color: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 0; }
         #app-container { max-width: 480px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
         h1 { font-size: 1.2rem; text-align: center; color: var(--primary); margin: 10px 0 25px; font-weight: 800; }
 
-        /* ガイド・おすすめ選択エリア */
+        /* === 2. ガイド・モード切替・メモ === */
         .guide-card { margin-bottom: 20px; }
         details summary { font-weight: bold; color: var(--primary); cursor: pointer; padding: 5px 0; outline: none; }
         .guide-content { font-size: 0.85rem; color: var(--text); padding-top: 10px; border-top: 1px dashed var(--border); margin-top: 10px; }
         .guide-content h4 { margin: 10px 0 5px 0; color: var(--text-muted); }
         .guide-content ul { margin: 0; padding-left: 20px; }
 
+        .mode-toggle-container { display: flex; gap: 10px; margin-bottom: 20px; background: #fff; padding: 5px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .mode-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
+        .mode-active { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(37,99,235,0.3); }
+        .mode-inactive { background: transparent; color: var(--text-muted); }
+
         .recommend-container { margin-bottom: 20px; animation: slideIn 0.4s ease-out; }
         .recommend-btn { width: 100%; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px dashed var(--primary); color: var(--primary); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
-        .recommend-btn:active { transform: scale(0.98); background: #dbeafe; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 部位カード・グリッド */
+        /* === 3. 部位カード（超回復バー付き） === */
         .card { background: var(--card-white); border-radius: 16px; padding: 15px; margin-bottom: 12px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .part-card-wrapper { position: relative; }
@@ -49,54 +43,63 @@
         .ready-fill { background: var(--green); }
         .time-label { font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 4px; }
 
-        /* 編集・管理画面 */
+        /* === 4. 編集・管理画面 === */
         .edit-icon-btn { position: absolute; top: -5px; right: -5px; background: white; border: 1px solid var(--border); border-radius: 50%; width: 26px; height: 26px; z-index: 10; cursor: pointer; }
         .edit-card { border: 2px solid var(--primary); background: #fcfdfe; }
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .edit-header h3 { margin: 0; font-size: 0.9rem; color: var(--primary); }
         .close-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
+        
         .manage-list { list-style: none; padding: 0; margin: 10px 0; }
-        .manage-list li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.85rem; }
-        .edit-item-main { display: flex; align-items: center; gap: 5px; flex: 1; }
-        .mini-rest-input { width: 40px; padding: 4px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
-        .del-btn { color: var(--red); border: none; background: none; cursor: pointer; font-weight: bold; font-size: 1.2rem; padding: 0 10px;}
-        .add-row { display: flex; gap: 5px; margin-bottom: 10px; }
-        .add-row input[type="text"] { flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 8px; }
-        .add-row input[type="number"] { width: 60px; padding: 8px; border: 1px solid var(--border); border-radius: 8px; }
+        .manage-list li { display: flex; flex-direction: column; gap: 8px; padding: 15px; border-bottom: 1px solid #eee; background: #fff; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border);}
+        .del-btn { color: var(--red); border: 1px solid var(--red); background: #fee2e2; border-radius:4px; cursor: pointer; font-weight: bold; font-size: 0.8rem; padding: 4px 8px; margin-left:auto;}
+        
+        .add-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; background: #eff6ff; padding: 12px; border-radius: 8px; border: 1px dashed var(--primary); }
+        .add-row-top { display: flex; gap: 5px; }
+        .add-row input[type="text"], .add-row input[type="number"], .add-row select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
+        
+        /* ★ 見切れ修正：数字入力欄の「上下矢印（スピンボタン）」を消す */
+        input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
 
-        /* トレーニング中の表示 */
+        /* バッジ */
+        .tag-badge { font-size: 0.65rem; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; }
+        .bg-gym { background: #3b82f6; } .bg-home { background: #f59e0b; } .bg-both { background: #8b5cf6; } .bg-bw { background: #10b981; } .bg-yt { background: #ef4444; }
+
+        /* === 5. YouTubeサムネイル用スタイル === */
+        .yt-thumbnail-wrapper { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: none; background: #000;}
+        .yt-thumbnail-wrapper img { width: 100%; display: block; opacity: 0.8; }
+        .yt-play-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .yt-play-btn { background: #ff0000; color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(255,0,0,0.4);}
+
+        /* === 6. トレーニング画面 === */
         .exercise-main-card { background: var(--primary); color: white; text-align: center; }
         .exercise-main-card h3 { font-size: 1.5rem; margin-bottom: 10px; }
-        #target-area { margin-bottom: 15px; }
-
         .memo-area { margin-top: 10px; }
         .memo-input { width: 100%; box-sizing: border-box; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: white; border-radius: 8px; padding: 10px; font-size: 0.85rem; min-height: 60px; resize: vertical; }
         .memo-input::placeholder { color: rgba(255, 255, 255, 0.6); }
 
-        .timer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         #timer-display { font-size: 3.5rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; line-height: 1; margin: 10px 0; }
         .status-badge { font-size: 0.7rem; font-weight: bold; padding: 4px 10px; border-radius: 6px; background: #eee; }
         .status-active { background: #dcfce7; color: #15803d; }
         .status-rest { background: #fee2e2; color: #b91c1c; }
 
-        .skip-rest-link { display: block; margin: 0 auto 15px; background: #f8fafc; border: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: all 0.2s; }
+        .skip-rest-link { display: block; margin: 0 auto 15px; background: #f8fafc; border: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem; padding: 8px 16px; border-radius: 20px; cursor: pointer; text-align: center; }
 
         .input-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 15px; }
         input[type="number"] { font-size: 1.5rem; font-weight: bold; border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
 
-        /* ボタン類 */
-        .main-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; }
+        .main-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
         .btn-blue { background: var(--primary); color: white; }
         .btn-green { background: var(--green); color: white; }
         .btn-red { background: var(--red); color: white; }
+        .btn-youtube { background: #ef4444; color: white; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); } 
         .btn-blue-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); margin-top: 10px; }
 
-        /* RPEボタン */
         .rpe-instruction { font-size: 0.85rem; color: var(--text); text-align: center; margin-bottom: 10px; background-color: #fef08a; padding: 8px; border-radius: 8px; }
         .button-group { display: flex; gap: 8px; margin-top: 5px; }
         .rpe-btn { flex: 1; padding: 12px 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; font-size: 0.9rem; font-weight: bold; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-        /* リスト・ログ */
         #last-sets-list, #history-list { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; text-align: left; }
         #last-sets-list li { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px 0; }
 
@@ -104,19 +107,13 @@
         .log-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .set-badge { background: var(--primary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
         .del-log-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; opacity: 0.6; transition: 0.2s; }
-        .del-log-btn:hover { opacity: 1; transform: scale(1.1); }
-
-        /* その他UI部品 */
         .executing-badge { background: #fff; color: var(--primary); padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
         .spin-btn-small { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .mini-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
-        .text-link-btn { width: 100%; background: none; border: none; color: var(--text-muted); margin-top: 20px; cursor: pointer; text-decoration: underline; }
 
-        /* モーダル */
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
         .modal-content { background: #fff; padding: 30px; border-radius: 20px; width: 100%; text-align: center; max-height: 80vh; overflow-y: auto;}
 
-        /* ワークフロー（順番） */
         .workflow-item { display: flex; flex-direction: column; align-items: center; }
         .workflow-arrow { font-size: 1.5rem; color: var(--primary); margin: -5px 0 8px; font-weight: bold; opacity: 0.6; }
         .list-item-card { width: 100%; display: flex; justify-content: space-between; align-items: center; position: relative; padding: 12px 15px; box-sizing: border-box; }
@@ -124,15 +121,9 @@
         .part-name-display { flex: 1; font-weight: bold; font-size: 1rem; }
         .completed-item { opacity: 0.6; background: #f8fafc !important; border-color: #cbd5e1 !important; }
 
-        .multi-action-area { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-        .btn-orange { background: #f59e0b; color: white; }
-
         .finish-nav { margin-top: 40px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 15px; border-top: 1px solid var(--border); }
-        .btn-gold { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3); font-size: 1.1rem; padding: 18px; border-radius: 16px; width: 100%; font-weight: bold; border: none; }
-
+        .btn-gold { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-size: 1.1rem; padding: 18px; border-radius: 16px; border: none; }
         .streak-badge { background: rgba(255, 193, 7, 0.2); color: #ff9800; font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; margin-top: 5px; font-weight: bold; border: 1px solid #ff9800; }
-        
-        .memo-title { font-size: 0.9rem; color: var(--primary); margin: 0 0 10px 0; }
         .home-memo-input { background: #f8fafc; border: 1px solid var(--border); color: var(--text); }
     </style>
 </head>
@@ -144,41 +135,28 @@
         </header>
         
         <div id="selection-screen">
+            <div class="mode-toggle-container">
+                <button id="mode-gym" class="mode-btn mode-active">🏢 ジムトレ</button>
+                <button id="mode-home" class="mode-btn mode-inactive">🏠 家トレ</button>
+            </div>
+
             <div class="card guide-card">
                 <details>
                     <summary>💡 初心者ガイド：順番と休憩のコツ</summary>
                     <div class="guide-content">
-                        <section>
-                            <h4>1. 筋トレの理想的な順番</h4>
-                            <p>「大きい筋肉」から先に鍛えるのが鉄則です。<br>（脚 → 背中 → 胸 → 肩 → 腕 → 腹筋）</p>
-                        </section>
-                        <section>
-                            <h4>2.「種目ごと」の推奨休憩時間</h4>
-                            <ul>
-                                <li><strong>スクワット等（多関節）:</strong> しっかり<strong>3分(180秒)</strong></li>
-                                <li><strong>エクステンション等（単関節）:</strong> <strong>60〜90秒</strong></li>
-                            </ul>
-                        </section>
-                        <section>
-                            <h4>3. 部位ごとの「超回復時間」</h4>
-                            <ul>
-                                <li><strong>大きな筋肉（脚・背中）:</strong> 約72時間</li>
-                                <li><strong>中くらいの筋肉（胸・肩）:</strong> 約48時間</li>
-                                <li><strong>小さな筋肉（腕・腹筋）:</strong> 約24時間</li>
-                            </ul>
-                        </section>
+                        <section><h4>1. 筋トレの順番</h4><p>「大きい筋肉」から（脚→背中→胸→肩→腕→腹筋）</p></section>
+                        <section><h4>2. 科学的な推奨休憩時間</h4><ul><li>スクワット等(多関節): 3分(180秒)</li><li>腕や肩等(単関節): 1〜2分(60〜120秒)</li><li>腹筋(小筋肉): 1分(60秒)</li></ul></section>
+                        <section><h4>3. 超回復時間</h4><ul><li>大筋肉: 約72時間</li><li>中小筋肉: 約24〜48時間</li></ul></section>
                     </div>
                 </details>
             </div>
 
             <div class="card home-memo-card">
-                <h3 class="memo-title">📝 全体メモ </h3>
+                <h3 style="font-size:0.9rem; color:var(--primary); margin:0 0 10px 0;">📝 全体メモ</h3>
                 <textarea id="home-memo" placeholder="目標、トレーニング全体のメモを残す..." class="memo-input home-memo-input"></textarea>
             </div>
 
-            <div class="section-title">
-                <h2>部位を選択 / 編集</h2>
-            </div>
+            <h2 style="font-size:1.1rem; text-align:center;">部位を選択 / 編集</h2>
 
             <div id="recommend-area" class="recommend-container" style="display: none;">
                 <button id="select-ready-parts-btn" class="recommend-btn">✨ 超回復済みを一括選択！</button>
@@ -191,12 +169,22 @@
                     <h3 id="edit-part-title">部位名</h3>
                     <button id="close-edit-btn" class="close-btn">✕</button>
                 </div>
-                <div class="add-row-container">
-                    <div class="add-row">
-                        <input type="text" id="new-exercise-input" placeholder="種目名">
-                        <input type="number" id="new-exercise-rest" placeholder="秒" min="0">
-                        <button id="add-exercise-btn" class="mini-btn">追加</button>
+                <div class="add-row">
+                    <div style="font-size:0.8rem; font-weight:bold; color:var(--primary);">➕ 新しい種目を追加</div>
+                    <div class="add-row-top">
+                        <input type="text" id="new-ex-name" placeholder="種目名" style="flex:1;">
+                        <input type="number" id="new-ex-rest" placeholder="秒" min="0" style="width:65px; text-align:center;">
                     </div>
+                    <div style="display:flex; gap:10px; align-items:center; font-size:0.8rem;">
+                        <select id="new-ex-loc" style="padding:5px; border-radius:5px; border:1px solid #ccc;">
+                            <option value="both">ジム/家 両方可</option>
+                            <option value="gym">ジム専用</option>
+                            <option value="home">家トレ専用</option>
+                        </select>
+                        <label><input type="checkbox" id="new-ex-bw"> 自重種目(0kg)</label>
+                        <button id="add-exercise-btn" class="mini-btn" style="margin-left:auto;">追加</button>
+                    </div>
+                    <input type="text" id="new-ex-yt" placeholder="YouTube URL (任意)" style="font-size:0.75rem; width:100%;">
                 </div>
                 <ul id="edit-exercise-list" class="manage-list"></ul>
             </div>
@@ -209,19 +197,22 @@
             
             <div id="roulette-result-area" style="display:none;">
                 <div class="card exercise-main-card">
-                    <div class="card-header-row">
-                        <span class="now-label" style="font-size:0.75rem; opacity:0.8;">NOW TRAINING</span>
-                        <h3 id="result-exercise-name">---</h3>
-                    </div>
+                    <div style="font-size:0.75rem; opacity:0.8;">NOW TRAINING</div>
+                    <h3 id="result-exercise-name">---</h3>
                     
-                    <div id="target-area">
-                        <span class="label" style="font-size:0.85rem;">前回の記録</span>
+                    <a id="youtube-link" href="#" target="_blank" class="yt-thumbnail-wrapper">
+                        <img id="youtube-thumb" src="" alt="YouTube Thumbnail">
+                        <div class="yt-play-overlay">
+                            <div class="yt-play-btn">▶ YouTubeで開く</div>
+                            <p style="font-size:0.7rem; color:#fff; margin-top:5px; text-shadow:0 1px 2px #000;">※別タブで開きます</p>
+                        </div>
+                    </a>
+
+                    <div style="margin-bottom:15px;">
+                        <span style="font-size:0.85rem;">前回の記録</span>
                         <ul id="last-sets-list"></ul>
                     </div>
-
-                    <div class="memo-area">
-                        <textarea id="exercise-memo" placeholder="フォームの注意点やメモを残す..." class="memo-input"></textarea>
-                    </div>
+                    <textarea id="exercise-memo" placeholder="フォームの注意点やメモを残す..." class="memo-input"></textarea>
                 </div>
 
                 <div class="card timer-card">
@@ -234,21 +225,24 @@
                     <button id="skip-rest-btn" class="skip-rest-link" style="display: none;">休憩をスキップ ⏩</button>
 
                     <div class="action-area">
+                        <button id="video-complete-btn" class="main-btn btn-youtube" style="display: none;">▶ 動画と一緒に完了（自動記録）</button>
                         <button id="set-start-btn" class="main-btn btn-green">セット開始！</button>
                         
                         <div id="record-input-area" style="display: none;">
                             <div class="input-row">
-                                <input type="number" id="actual-weight" placeholder="0" step="0.5" min="0" style="width: 70px;">
-                                <span class="unit">kg ×</span>
-                                <input type="number" id="actual-reps" placeholder="0" min="0" style="width: 70px;">
-                                <span class="unit">回</span>
+                                <div id="weight-input-container" style="display:inline-block;">
+                                    <input type="number" id="actual-weight" placeholder="0" step="0.5" min="0" style="width: 70px;">
+                                    <span style="font-size:1.5rem; margin:0 5px;">kg ×</span>
+                                </div>
+                                <input type="number" id="actual-reps" placeholder="回数" min="0" style="width: 80px;">
+                                <span id="reps-label" style="font-size:1.5rem; margin-left:5px; display:none;">回</span>
                             </div>
                             <button id="set-end-record-btn" class="main-btn btn-red">記録して休憩</button>
                         </div>
                     </div>
 
-                    <div id="rpe-selection-area" class="rpe-section" style="display: none;">
-                        <p class="rpe-instruction">👇 <strong>次の休憩時間を計算するため、今のセットのキツさを選んでください！</strong></p>
+                    <div id="rpe-selection-area" style="display: none; margin-top:10px;">
+                        <p class="rpe-instruction">👇 <strong>今のセットのキツさを選んでください！</strong></p>
                         <div class="button-group">
                             <button class="rpe-btn" data-mod="0.8">余裕</button>
                             <button class="rpe-btn" data-mod="1.0">普通</button>
@@ -262,14 +256,14 @@
                 </div>
 
                 <div class="multi-action-area">
-                    <button id="next-exercise-btn" class="main-btn btn-orange">別の種目へ</button>
+                    <button id="next-exercise-btn" class="main-btn" style="background:#f59e0b; color:white;">別の種目へ</button>
                     <button id="complete-part-btn" class="main-btn btn-blue-outline">この部位を完了</button>
                 </div>
             </div>
 
             <div id="workout-finish-area" class="finish-nav">
                 <button id="all-complete-btn" class="main-btn btn-gold">本日のトレーニング終了</button>
-                <button id="back-btn" class="text-link-btn">← 中断して戻る</button>
+                <button id="back-btn" class="text-link-btn" style="background:none; border:none; color:gray; text-decoration:underline;">← 中断して戻る</button>
             </div>
         </div>
 
@@ -293,30 +287,55 @@
 
     <script>
     window.onload = function() {
-        // --- プッシュ通知の許可 ---
-        try {
-            if ("Notification" in window && Notification.permission === "default") {
-                Notification.requestPermission();
-            }
-        } catch(e) { console.warn("通知の初期化エラー:", e); }
+        try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); } catch(e) {}
 
-        // --- データ初期化 ---
         const defaultBodyParts = [
-            { name: "脚", priority: 1, recoveryHours: 72, exercises: [{ name: "スクワット", rest: 180 }, { name: "レッグプレス", rest: 150 }, { name: "レッグエクステンション", rest: 60 }]},
-            { name: "背中", priority: 2, recoveryHours: 72, exercises: [{ name: "懸垂", rest: 120 }, { name: "ラットプルダウン", rest: 90 }, { name: "ワンハンドロー", rest: 90 }]},
-            { name: "胸", priority: 3, recoveryHours: 48, exercises: [{ name: "ベンチプレス", rest: 150 }, { name: "インクラインプレス", rest: 120 }, { name: "ダンベルフライ", rest: 90 }]},
-            { name: "肩", priority: 4, recoveryHours: 48, exercises: [{ name: "ショルダープレス", rest: 120 }, { name: "サイドレイズ", rest: 45 }, { name: "リアレイズ", rest: 45 }]},
-            { name: "腕", priority: 5, recoveryHours: 24, exercises: [{ name: "アームカール", rest: 60 }, { name: "プレスダウン", rest: 60 }]},
-            { name: "腹筋", priority: 6, recoveryHours: 24, exercises: [{ name: "クランチ", rest: 45 }, { name: "レッグレイズ", rest: 45 }]}
+            { name: "脚", priority: 1, recoveryHours: 72, exercises: [
+                { name: "バーベルスクワット", rest: 180, loc: "gym", bw: false }, 
+                { name: "レッグプレス", rest: 180, loc: "gym", bw: false },
+                { name: "自重スクワット", rest: 60, loc: "both", bw: true },
+                { name: "ブルガリアンスクワット", rest: 120, loc: "both", bw: true }
+            ]},
+            { name: "背中", priority: 2, recoveryHours: 72, exercises: [
+                { name: "ラットプルダウン", rest: 120, loc: "gym", bw: false }, 
+                { name: "懸垂(チンニング)", rest: 180, loc: "both", bw: true },
+                { name: "バックエクステンション", rest: 90, loc: "home", bw: true }
+            ]},
+            { name: "胸", priority: 3, recoveryHours: 48, exercises: [
+                { name: "ベンチプレス", rest: 180, loc: "gym", bw: false }, 
+                { name: "チェストプレス", rest: 120, loc: "gym", bw: false },
+                { name: "腕立て伏せ", rest: 90, loc: "both", bw: true }
+            ]},
+            { name: "肩", priority: 4, recoveryHours: 48, exercises: [
+                { name: "ショルダープレス", rest: 120, loc: "gym", bw: false }, 
+                { name: "サイドレイズ", rest: 60, loc: "gym", bw: false },
+                { name: "パイクプッシュアップ", rest: 90, loc: "home", bw: true }
+            ]},
+            { name: "腕", priority: 5, recoveryHours: 24, exercises: [
+                { name: "アームカール", rest: 60, loc: "gym", bw: false },
+                { name: "フレンチプレス(自重)", rest: 60, loc: "both", bw: true },
+                { name: "ディップス", rest: 120, loc: "both", bw: true }
+            ]},
+            { name: "腹筋", priority: 6, recoveryHours: 24, exercises: [
+                { name: "クランチ", rest: 60, loc: "both", bw: true }, 
+                { name: "プランク", rest: 60, loc: "both", bw: true },
+                { name: "3分間鬼の腹筋(動画)", rest: 60, loc: "home", bw: true, youtubeUrl: "https://www.youtube.com/watch?v=1we3XigEqkc" }
+            ]}
         ];
 
         let savedBodyParts = JSON.parse(localStorage.getItem('masterBodyParts'));
         let bodyParts;
-        if (!savedBodyParts || savedBodyParts.length === 0) {
-            bodyParts = JSON.parse(JSON.stringify(defaultBodyParts));
+        if (savedBodyParts && savedBodyParts.length > 0) {
+            savedBodyParts.forEach(p => p.exercises.forEach(ex => { 
+                if(!ex.loc) ex.loc = "both"; 
+                if(ex.bw === undefined) ex.bw = false; 
+                if(!ex.rest) ex.rest = 60;
+            }));
+            bodyParts = savedBodyParts;
             localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
         } else {
-            bodyParts = savedBodyParts;
+            bodyParts = JSON.parse(JSON.stringify(defaultBodyParts));
+            localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
         }
 
         let recoveryData = JSON.parse(localStorage.getItem('recoveryData')) || {}; 
@@ -325,6 +344,7 @@
         let exerciseLastDate = JSON.parse(localStorage.getItem('exerciseLastDate')) || {};
 
         let selectedParts = new Set();
+        let currentWorkoutMode = 'gym'; 
         let currentProcessingPart = null;
         let currentEditingPart = null;
         let currentExerciseObj = null; 
@@ -332,305 +352,340 @@
         let totalVolumeThisSession = 0;
         let allSessionSets = []; 
         let doneExercisesInCurrentPart = []; 
-
         let timerInterval = null, workoutInterval = null;
-        let baseTime = 60, rpeModifier = 1.0, setNumber = 1;
-        let targetEndTime = 0; 
+        let baseTime = 60, rpeModifier = 1.0, setNumber = 1, targetEndTime = 0; 
 
-        const preventMinus = (e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); };
+        // ★ エラー修正：変数の宣言（箱の準備）をここで行う
         const weightInput = document.getElementById('actual-weight');
         const repsInput = document.getElementById('actual-reps');
+        const workoutStatus = document.getElementById('workout-status'); // ←これがないとセット開始時にエラーになる
+        const timerDisplay = document.getElementById('timer-display');   // ←これがないとタイマー表示でエラーになる
+
+        // モード切替のUI設定
+        const btnGym = document.getElementById('mode-gym');
+        const btnHome = document.getElementById('mode-home');
+        btnGym.onclick = () => { currentWorkoutMode = 'gym'; btnGym.className = "mode-btn mode-active"; btnHome.className = "mode-btn mode-inactive"; };
+        btnHome.onclick = () => { currentWorkoutMode = 'home'; btnHome.className = "mode-btn mode-active"; btnGym.className = "mode-btn mode-inactive"; };
+
+        const preventMinus = (e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); };
         weightInput.onkeydown = preventMinus; repsInput.onkeydown = preventMinus;
 
-        const buttonGrid = document.getElementById('button-grid');
-        const startBtn = document.getElementById('start-roulette');
-        const selectionScreen = document.getElementById('selection-screen');
-        const rouletteScreen = document.getElementById('roulette-screen');
-        const selectedList = document.getElementById('selected-list');
-        const resultArea = document.getElementById('roulette-result-area');
-        const resultText = document.getElementById('result-exercise-name');
-        const timerDisplay = document.getElementById('timer-display');
-        const setStartBtn = document.getElementById('set-start-btn');
-        const skipRestBtn = document.getElementById('skip-rest-btn');
-        const recordInputArea = document.getElementById('record-input-area');
-        const workoutStatus = document.getElementById('workout-status');
-        const lastSetsList = document.getElementById('last-sets-list');
-        const inlineEditArea = document.getElementById('inline-edit-area');
-        const editExerciseList = document.getElementById('edit-exercise-list');
-        const streakInfo = document.getElementById('streak-info');
-        const recommendArea = document.getElementById('recommend-area');
-        const selectReadyPartsBtn = document.getElementById('select-ready-parts-btn');
-        
-        const exerciseMemo = document.getElementById('exercise-memo'); 
-        const homeMemo = document.getElementById('home-memo');
-        homeMemo.value = localStorage.getItem('homeMemo') || "";
-
-        // ★ 音量UPと周波数の調整
         function playAlarm() {
             try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (!AudioContext) return;
-                const ctx = new AudioContext();
-                
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (!ctx) return;
                 const playBeep = (time, freq, dur) => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(freq, time);
-                    gain.gain.setValueAtTime(0.8, time); // 音量を 0.1 → 0.8 に引き上げ
-                    gain.gain.exponentialRampToValueAtTime(0.01, time + dur);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start(time);
-                    osc.stop(time + dur);
+                    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+                    osc.type = 'square'; osc.frequency.setValueAtTime(freq, time);
+                    gain.gain.setValueAtTime(0.8, time); gain.gain.exponentialRampToValueAtTime(0.01, time + dur);
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.start(time); osc.stop(time + dur);
                 };
-
                 const now = ctx.currentTime;
-                // ピ・ピ・ピ・ピーッ（少し高めの1000Hzに変更してより目立たせる）
-                playBeep(now, 1000, 0.1);
-                playBeep(now + 0.2, 1000, 0.1);
-                playBeep(now + 0.4, 1000, 0.1);
-                playBeep(now + 0.6, 1200, 0.4);
-            } catch(e) { console.warn("音声再生エラー:", e); }
+                playBeep(now, 1000, 0.1); playBeep(now + 0.2, 1000, 0.1); playBeep(now + 0.4, 1000, 0.1); playBeep(now + 0.6, 1200, 0.4);
+            } catch(e) {}
         }
 
-        exerciseMemo.addEventListener('input', (e) => {
-            if (currentExerciseObj) localStorage.setItem(`memo_${currentExerciseObj.name}`, e.target.value);
-        });
-
-        homeMemo.addEventListener('input', (e) => {
-            localStorage.setItem('homeMemo', e.target.value);
-        });
+        document.getElementById('exercise-memo').addEventListener('input', (e) => { if (currentExerciseObj) localStorage.setItem(`memo_${currentExerciseObj.name}`, e.target.value); });
+        const homeMemo = document.getElementById('home-memo');
+        homeMemo.value = localStorage.getItem('homeMemo') || "";
+        homeMemo.addEventListener('input', (e) => localStorage.setItem('homeMemo', e.target.value));
 
         function updateStreak() {
             const today = new Date().toLocaleDateString();
             if (streakData.lastDate && streakData.lastDate !== today) {
                 const last = new Date(streakData.lastDate);
-                const diffDays = Math.ceil(Math.abs(new Date(today) - last) / (1000 * 60 * 60 * 24));
-                if (diffDays > 1) streakData.count = 0; 
+                if (Math.ceil(Math.abs(new Date(today) - last) / 86400000) > 1) streakData.count = 0; 
             }
             if (streakData.count > 0) {
-                streakInfo.style.display = 'inline-block';
-                streakInfo.innerText = `🔥 ${streakData.count}日連続中！`;
+                document.getElementById('streak-info').style.display = 'inline-block';
+                document.getElementById('streak-info').innerText = `🔥 ${streakData.count}日連続中！`;
             }
         }
 
         function initButtons() {
-            buttonGrid.innerHTML = "";
+            const grid = document.getElementById('button-grid');
+            grid.innerHTML = "";
             const now = Date.now();
             let readyPartsFound = [];
             bodyParts.forEach(part => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'part-card-wrapper';
-                const btn = document.createElement('button');
-                btn.className = 'part-btn card';
+                const wrapper = document.createElement('div'); wrapper.className = 'part-card-wrapper';
+                const btn = document.createElement('button'); btn.className = 'part-btn card';
                 const finishTime = recoveryData[part.name] || 0;
                 const remainingMs = finishTime - now;
                 const progress = Math.max(0, Math.min(100, (1 - (remainingMs / (part.recoveryHours * 3600000))) * 100));
-                let timeLabel = "READY";
-                if (remainingMs > 0) {
-                    const h = Math.floor(remainingMs / 3600000);
-                    const m = Math.floor((remainingMs % 3600000) / 60000);
-                    timeLabel = h > 0 ? `残り ${h}h ${m}m` : `残り ${m}m`;
-                    btn.classList.add('recovering');
-                } else { readyPartsFound.push(part); }
+                let timeLabel = remainingMs <= 0 ? "READY" : `残り ${Math.floor(remainingMs/3600000)}h ${Math.floor((remainingMs%3600000)/60000)}m`;
+                if (remainingMs <= 0) readyPartsFound.push(part);
                 
-                btn.innerHTML = `<span class="part-name">${part.name}</span><div class="progress-container"><div class="progress-bar"><div class="progress-fill ${remainingMs <= 0 ? 'ready-fill' : ''}" style="width: ${progress}%"></div></div><span class="time-label">${timeLabel}</span></div>`;
+                btn.innerHTML = `<span class="part-name">${part.name}</span><div class="progress-bar"><div class="progress-fill ${remainingMs <= 0 ? 'ready-fill' : ''}" style="width: ${progress}%"></div></div><span class="time-label">${timeLabel}</span>`;
+                if(selectedParts.has(part)) btn.classList.add('selected');
                 btn.onclick = () => {
                     btn.classList.toggle('selected');
-                    if (btn.classList.contains('selected')) selectedParts.add(part);
-                    else selectedParts = new Set(Array.from(selectedParts).filter(p => p.name !== part.name));
+                    if (btn.classList.contains('selected')) selectedParts.add(part); else selectedParts.delete(part);
                 };
                 
-                const editBtn = document.createElement('button');
-                editBtn.className = 'edit-icon-btn'; editBtn.innerHTML = '⚙️';
+                const editBtn = document.createElement('button'); editBtn.className = 'edit-icon-btn'; editBtn.innerHTML = '⚙️';
                 editBtn.onclick = (e) => { e.stopPropagation(); openInlineEdit(part); };
-                wrapper.append(btn, editBtn);
-                buttonGrid.appendChild(wrapper);
+                wrapper.append(btn, editBtn); grid.appendChild(wrapper);
             });
-            recommendArea.style.display = readyPartsFound.length > 0 ? 'block' : 'none';
-            selectReadyPartsBtn.onclick = () => {
-                readyPartsFound.forEach(p => {
-                    selectedParts.add(p);
-                    document.querySelectorAll('.part-btn').forEach(b => {
-                        if(b.querySelector('.part-name').innerText === p.name) b.classList.add('selected');
-                    });
-                });
-            };
+            document.getElementById('recommend-area').style.display = readyPartsFound.length > 0 ? 'block' : 'none';
         }
+        
+        document.getElementById('select-ready-parts-btn').onclick = () => {
+            const now = Date.now();
+            bodyParts.forEach(p => { if((recoveryData[p.name] || 0) <= now) selectedParts.add(p); });
+            initButtons();
+        };
 
         function openInlineEdit(part) {
             currentEditingPart = part;
             document.getElementById('edit-part-title').innerText = `${part.name}の管理`;
             renderEditList();
-            inlineEditArea.style.display = 'block';
+            document.getElementById('inline-edit-area').style.display = 'block';
         }
 
         function renderEditList() {
-            editExerciseList.innerHTML = "";
+            const list = document.getElementById('edit-exercise-list');
+            list.innerHTML = "";
             currentEditingPart.exercises.forEach((ex, idx) => {
                 const li = document.createElement('li');
-                li.innerHTML = `<div class="edit-item-main"><span class="ex-name">${ex.name}</span><input type="number" class="mini-rest-input" value="${ex.rest}" data-idx="${idx}" min="0"><span class="unit">s</span></div><button class="del-btn">×</button>`;
-                const input = li.querySelector('.mini-rest-input');
-                input.onkeydown = preventMinus; 
-                input.onchange = (e) => {
-                    currentEditingPart.exercises[idx].rest = Math.max(0, parseInt(e.target.value) || 0);
+                
+                // ★ 見切れ対策：edit-rest の input の幅を 65px に広げました
+                li.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; width:100%;">
+                        <input type="text" class="edit-name" value="${ex.name}" style="flex:1; font-weight:bold; border:1px solid transparent; background:transparent; font-size:0.9rem;" placeholder="種目名">
+                        <button class="del-btn">削除</button>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center; font-size:0.8rem; width:100%;">
+                        休憩:<input type="number" class="edit-rest" value="${ex.rest}" style="width:65px; padding:4px; border:1px solid #ccc; border-radius:4px; text-align:center;">s
+                        <select class="edit-loc" style="padding:4px; border:1px solid #ccc; border-radius:4px;">
+                            <option value="both" ${ex.loc === 'both' ? 'selected' : ''}>共通</option>
+                            <option value="gym" ${ex.loc === 'gym' ? 'selected' : ''}>ジム</option>
+                            <option value="home" ${ex.loc === 'home' ? 'selected' : ''}>家</option>
+                        </select>
+                        <label><input type="checkbox" class="edit-bw" ${ex.bw ? 'checked' : ''}>自重</label>
+                    </div>
+                    <input type="text" class="edit-yt" value="${ex.youtubeUrl || ''}" placeholder="YouTube URL (任意)" style="font-size:0.75rem; width:100%; padding:4px; border:1px solid #ccc; border-radius:4px;">
+                `;
+
+                const updateData = () => {
+                    ex.name = li.querySelector('.edit-name').value.trim() || ex.name;
+                    ex.rest = Math.max(0, parseInt(li.querySelector('.edit-rest').value) || 0);
+                    ex.loc = li.querySelector('.edit-loc').value;
+                    ex.bw = li.querySelector('.edit-bw').checked;
+                    ex.youtubeUrl = li.querySelector('.edit-yt').value.trim();
                     localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
                 };
+
+                li.querySelector('.edit-name').onchange = updateData;
+                li.querySelector('.edit-rest').onchange = updateData;
+                li.querySelector('.edit-loc').onchange = updateData;
+                li.querySelector('.edit-bw').onchange = updateData;
+                li.querySelector('.edit-yt').onchange = updateData;
+
                 li.querySelector('.del-btn').onclick = () => {
                     if (currentEditingPart.exercises.length > 1) {
                         currentEditingPart.exercises.splice(idx, 1);
                         localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
                         renderEditList();
-                    } else {
-                        alert("最低1つの種目は残してください。");
-                    }
+                    } else alert("最低1つの種目は残してください。");
                 };
-                editExerciseList.appendChild(li);
+                list.appendChild(li);
             });
         }
 
-        document.getElementById('new-exercise-rest').onkeydown = preventMinus;
         document.getElementById('add-exercise-btn').onclick = () => {
-            const nameInput = document.getElementById('new-exercise-input');
-            const restInput = document.getElementById('new-exercise-rest');
-            if (nameInput.value.trim()) {
-                currentEditingPart.exercises.push({ name: nameInput.value.trim(), rest: Math.max(0, parseInt(restInput.value) || 60) });
-                nameInput.value = ""; restInput.value = "";
+            const name = document.getElementById('new-ex-name').value.trim();
+            const rest = parseInt(document.getElementById('new-ex-rest').value) || 60;
+            const loc = document.getElementById('new-ex-loc').value;
+            const isBw = document.getElementById('new-ex-bw').checked;
+            const ytUrl = document.getElementById('new-ex-yt').value.trim();
+            
+            if (name) {
+                let newEx = { name: name, rest: Math.max(0, rest), loc: loc, bw: isBw };
+                if (ytUrl) newEx.youtubeUrl = ytUrl; 
+                currentEditingPart.exercises.push(newEx);
+                
+                document.getElementById('new-ex-name').value = ""; document.getElementById('new-ex-rest').value = "";
+                document.getElementById('new-ex-yt').value = ""; document.getElementById('new-ex-bw').checked = false;
                 localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
                 renderEditList();
             }
         };
 
-        startBtn.onclick = () => {
+        document.getElementById('start-roulette').onclick = () => {
             if (selectedParts.size === 0) return alert("部位を選択してください");
-            selectionScreen.style.display = 'none';
-            rouletteScreen.style.display = 'block';
-            selectedList.innerHTML = "";
-            totalVolumeThisSession = 0;
-            allSessionSets = []; 
+            
+            let isValid = true;
+            Array.from(selectedParts).forEach(part => {
+                const validEx = part.exercises.some(ex => ex.loc === currentWorkoutMode || ex.loc === 'both');
+                if (!validEx) {
+                    alert(`【エラー】${part.name} には、現在選択中の「${currentWorkoutMode === 'gym' ? 'ジム' : '家'}」でできる種目が登録されていません。部位の選択を外すか、種目を追加してください。`);
+                    isValid = false;
+                }
+            });
+            if(!isValid) return;
+
+            document.getElementById('selection-screen').style.display = 'none';
+            document.getElementById('roulette-screen').style.display = 'block';
+            const sList = document.getElementById('selected-list'); sList.innerHTML = "";
+            totalVolumeThisSession = 0; allSessionSets = []; 
             
             Array.from(selectedParts).sort((a,b)=>a.priority-b.priority).forEach((part, index) => {
-                const div = document.createElement('div');
-                div.className = 'workflow-item';
-                div.id = `workflow-${part.name}`;
+                const div = document.createElement('div'); div.className = 'workflow-item'; div.id = `workflow-${part.name}`;
                 div.innerHTML = `<div class="list-item-card card"><div class="part-order-badge">STEP ${index + 1}</div><span class="part-name-display">${part.name}</span><button class="spin-btn-small">種目を決定</button></div>${index < selectedParts.size - 1 ? '<div class="workflow-arrow">↓</div>' : ''}`;
                 div.querySelector('.spin-btn-small').onclick = (e) => {
                     document.querySelectorAll('.executing-badge').forEach(el => el.remove());
-                    currentProcessingPart = part;
-                    doneExercisesInCurrentPart = [];
+                    currentProcessingPart = part; doneExercisesInCurrentPart = [];
                     runRoulette(part, e.target);
                 };
-                selectedList.appendChild(div);
+                sList.appendChild(div);
             });
         };
 
         function runRoulette(part, btn) {
-            if(btn) {
-                btn.disabled = true;
-                btn.closest('.list-item-card').insertAdjacentHTML('afterbegin', '<span class="executing-badge">NOW</span>');
-                btn.style.visibility = 'hidden';
-            }
-            resultArea.style.display = 'block';
+            if(btn) { btn.disabled = true; btn.closest('.list-item-card').insertAdjacentHTML('afterbegin', '<span class="executing-badge">NOW</span>'); btn.style.visibility = 'hidden'; }
+            document.getElementById('roulette-result-area').style.display = 'block';
+            
+            const validExercisesForShuffle = part.exercises.filter(ex => ex.loc === currentWorkoutMode || ex.loc === 'both');
+
             let count = 0;
             const shuffleInterval = setInterval(() => {
-                const tempEx = part.exercises[Math.floor(Math.random() * part.exercises.length)];
-                resultText.innerText = tempEx.name;
+                document.getElementById('result-exercise-name').innerText = validExercisesForShuffle[Math.floor(Math.random() * validExercisesForShuffle.length)].name;
                 count++;
-                if (count > 15) {
-                    clearInterval(shuffleInterval);
-                    setExercise(part); 
-                }
+                if (count > 15) { clearInterval(shuffleInterval); setExercise(part); }
             }, 60);
         }
 
+        function getYouTubeId(url) {
+            if (!url) return null;
+            const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+            return match ? match[1] : null;
+        }
+
         function setExercise(part) {
-            const available = part.exercises.filter(ex => !doneExercisesInCurrentPart.includes(ex.name));
-            const targetPool = available.length > 0 ? available : part.exercises;
+            let targetPool = part.exercises.filter(ex => !doneExercisesInCurrentPart.includes(ex.name) && (ex.loc === currentWorkoutMode || ex.loc === 'both'));
+            if (targetPool.length === 0) targetPool = part.exercises.filter(ex => ex.loc === currentWorkoutMode || ex.loc === 'both');
+            
             const now = Date.now();
             let totalWeight = 0;
-            
-            const weightedPool = targetPool.map(ex => {
-                const lastDate = exerciseLastDate[ex.name] || 0;
-                let weight = 100; 
-                if (lastDate > 0) {
-                    const daysSince = (now - lastDate) / (1000 * 60 * 60 * 24);
-                    weight = Math.max(1, Math.min(100, daysSince * 10));
-                }
+            const pool = targetPool.map(ex => {
+                const last = exerciseLastDate[ex.name] || 0;
+                const weight = Math.max(1, Math.min(100, ((now - last) / 86400000) * 10));
                 totalWeight += weight;
-                return { ...ex, weight };
+                return { ...ex, weight: weight };
             });
 
-            let randomValue = Math.random() * totalWeight;
-            for (let i = 0; i < weightedPool.length; i++) {
-                randomValue -= weightedPool[i].weight;
-                if (randomValue <= 0) {
-                    currentExerciseObj = weightedPool[i];
-                    break;
-                }
-            }
+            let r = Math.random() * totalWeight;
+            for (let ex of pool) { r -= ex.weight; if (r <= 0) { currentExerciseObj = ex; break; } }
             
-            resultText.innerText = currentExerciseObj.name;
-            baseTime = currentExerciseObj.rest; 
-            currentExerciseSets = [];
-            setNumber = 1;
+            document.getElementById('result-exercise-name').innerText = currentExerciseObj.name;
+            baseTime = currentExerciseObj.rest; currentExerciseSets = []; setNumber = 1;
+            document.getElementById('exercise-memo').value = localStorage.getItem(`memo_${currentExerciseObj.name}`) || "";
 
-            exerciseMemo.value = localStorage.getItem(`memo_${currentExerciseObj.name}`) || "";
+            const ytLink = document.getElementById('youtube-link');
+            const ytThumb = document.getElementById('youtube-thumb');
+            const ytBtn = document.getElementById('video-complete-btn');
+            const ytId = getYouTubeId(currentExerciseObj.youtubeUrl);
+            
+            if (ytId) {
+                ytLink.href = `https://www.youtube.com/watch?v=${ytId}`;
+                ytThumb.src = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                ytLink.style.display = "block"; 
+                ytBtn.style.display = "block"; 
+            } else { 
+                ytLink.style.display = "none"; 
+                ytBtn.style.display = "none"; 
+            }
+
+            if (currentExerciseObj.bw) {
+                document.getElementById('weight-input-container').style.display = "none";
+                document.getElementById('reps-label').style.display = "inline-block";
+            } else {
+                document.getElementById('weight-input-container').style.display = "inline-block";
+                document.getElementById('reps-label').style.display = "none";
+            }
 
             const records = exerciseRecords[currentExerciseObj.name] || [];
-            lastSetsList.innerHTML = records.length ? "" : "<li>記録なし</li>";
+            const hList = document.getElementById('last-sets-list');
+            hList.innerHTML = records.length ? "" : "<li>記録なし</li>";
+            records.forEach((rec, idx) => {
+                const weightText = rec.weight === 0 ? "自重" : `${rec.weight}kg`;
+                hList.insertAdjacentHTML('beforeend', `<li><span>Set ${idx+1}</span><strong>${weightText} × ${rec.reps}回</strong></li>`);
+            });
             if (records.length > 0) {
-                weightInput.value = records[records.length - 1].weight; 
+                weightInput.value = records[records.length - 1].weight === 0 ? "" : records[records.length - 1].weight;
                 repsInput.value = records[records.length - 1].reps;
-            } else {
-                weightInput.value = ""; repsInput.value = "";
-            }
-            records.forEach((rec, idx) => lastSetsList.insertAdjacentHTML('beforeend', `<li><span>Set ${idx+1}</span><strong>${rec.weight}kg × ${rec.reps}回</strong></li>`));
+            } else { weightInput.value = ""; repsInput.value = ""; }
             
             updateUI();
-            resultArea.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('roulette-result-area').scrollIntoView({ behavior: 'smooth' });
         }
+
+        // ★ バグ修正：セット開始時のエラー（ReferenceError）を完全に解消
+        document.getElementById('set-start-btn').onclick = () => {
+            try {
+                clearInterval(timerInterval); clearInterval(workoutInterval);
+                document.getElementById('set-start-btn').style.display = "none";
+                document.getElementById('video-complete-btn').style.display = "none"; 
+                
+                // ここでエラーになっていた変数を、上部でしっかり定義しました！
+                workoutStatus.innerText = "TRAINING"; 
+                workoutStatus.className = "status-badge status-active";
+                
+                const startTime = Date.now();
+                workoutInterval = setInterval(() => {
+                    const s = Math.floor((Date.now() - startTime) / 1000);
+                    timerDisplay.innerText = `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
+                }, 1000);
+                document.getElementById('record-input-area').style.display = "block";
+                
+                if (currentExerciseSets.length > 0) {
+                    const last = currentExerciseSets[currentExerciseSets.length - 1];
+                    weightInput.value = last.weight === 0 ? "" : last.weight; repsInput.value = last.reps;
+                }
+            } catch(e) {
+                console.error("セット開始エラー:", e);
+                alert("エラーが発生しました。画面を再読み込みしてください。");
+            }
+        };
 
         document.getElementById('set-end-record-btn').onclick = () => {
             clearInterval(workoutInterval);
-            const weight = Math.max(0, parseFloat(weightInput.value) || 0);
+            const weight = currentExerciseObj.bw ? 0 : (weightInput.value.trim() === "" ? 0 : Math.max(0, parseFloat(weightInput.value)));
             const reps = Math.max(0, parseInt(repsInput.value) || 0);
             
-            const setLog = { 
-                partName: currentProcessingPart.name, 
-                exName: currentExerciseObj.name, 
-                weight, reps, 
-                setNum: currentExerciseSets.length + 1,
-                id: Date.now() 
-            };
-
-            currentExerciseSets.push(setLog);
-            allSessionSets.push(setLog); 
-            totalVolumeThisSession += (weight * reps);
-            
-            exerciseLastDate[currentExerciseObj.name] = Date.now();
-            localStorage.setItem('exerciseLastDate', JSON.stringify(exerciseLastDate));
-
-            renderHistoryList();
-            document.getElementById('session-history').style.display = "block";
-            recordInputArea.style.display = "none";
+            saveLog(weight, reps, false);
+            document.getElementById('record-input-area').style.display = "none";
             document.getElementById('rpe-selection-area').style.display = "block";
         };
+
+        document.getElementById('video-complete-btn').onclick = () => {
+            clearInterval(timerInterval); clearInterval(workoutInterval);
+            saveLog(0, 1, true); 
+            alert("動画トレーニングお疲れ様でした！");
+            setNumber++; updateUI();
+        };
+
+        function saveLog(weight, reps, isVideoMode) {
+            const setLog = { partName: currentProcessingPart.name, exName: currentExerciseObj.name, weight, reps, setNum: currentExerciseSets.length + 1, id: Date.now(), isVideo: isVideoMode };
+            currentExerciseSets.push(setLog); allSessionSets.push(setLog); 
+            totalVolumeThisSession += (weight * reps);
+            exerciseLastDate[currentExerciseObj.name] = Date.now();
+            localStorage.setItem('exerciseLastDate', JSON.stringify(exerciseLastDate));
+            renderHistoryList();
+            document.getElementById('session-history').style.display = "block";
+        }
 
         window.deleteLog = function(logId) {
             if(!confirm("この記録を削除しますか？")) return;
             const logToDelete = allSessionSets.find(s => s.id === logId);
             if(!logToDelete) return;
-
             totalVolumeThisSession -= (logToDelete.weight * logToDelete.reps);
             allSessionSets = allSessionSets.filter(s => s.id !== logId);
             currentExerciseSets = currentExerciseSets.filter(s => s.id !== logId);
-
-            if (currentExerciseSets.length > 0) {
-                exerciseRecords[currentExerciseObj.name] = currentExerciseSets.map(s => ({weight: s.weight, reps: s.reps}));
-            } else {
-                delete exerciseRecords[currentExerciseObj.name];
-            }
+            if (currentExerciseSets.length > 0) exerciseRecords[currentExerciseObj.name] = currentExerciseSets.map(s => ({weight: s.weight, reps: s.reps}));
+            else delete exerciseRecords[currentExerciseObj.name];
             localStorage.setItem('exerciseRecords', JSON.stringify(exerciseRecords));
             renderHistoryList();
             if(allSessionSets.length === 0) document.getElementById('session-history').style.display = "none";
@@ -640,38 +695,13 @@
             const list = document.getElementById('history-list');
             list.innerHTML = "";
             allSessionSets.forEach(set => {
-                const li = document.createElement('li');
-                li.className = "log-item";
-                li.innerHTML = `
-                    <div class="log-info">
-                        <span class="set-badge">Set ${set.setNum}</span>
-                        <span>${set.partName}：${set.exName}</span>
-                        <strong style="margin-left:10px;">${set.weight}kg × ${set.reps}回</strong>
-                    </div>
-                    <button class="del-log-btn" onclick="deleteLog(${set.id})">🗑️</button>
-                `;
+                const li = document.createElement('li'); li.className = "log-item";
+                const weightDisplay = set.weight === 0 ? "自重" : `${set.weight}kg`;
+                const repsDisplay = set.isVideo ? "完了(動画)" : `${set.reps}回`;
+                li.innerHTML = `<div class="log-info"><span class="set-badge">Set ${set.setNum}</span><span>${set.partName}：${set.exName}</span><strong style="margin-left:10px;">${weightDisplay} × ${repsDisplay}</strong></div><button class="del-log-btn" onclick="deleteLog(${set.id})">🗑️</button>`;
                 list.appendChild(li);
             });
         }
-
-        setStartBtn.onclick = () => {
-            clearInterval(timerInterval); clearInterval(workoutInterval);
-            setStartBtn.style.display = "none";
-            workoutStatus.innerText = "TRAINING";
-            workoutStatus.className = "status-badge status-active";
-            
-            const startTime = Date.now();
-            workoutInterval = setInterval(() => {
-                const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-                timerDisplay.innerText = `${Math.floor(elapsedSeconds/60).toString().padStart(2,'0')}:${(elapsedSeconds%60).toString().padStart(2,'0')}`;
-            }, 1000);
-            
-            recordInputArea.style.display = "block";
-            if (currentExerciseSets.length > 0) {
-                const lastSet = currentExerciseSets[currentExerciseSets.length - 1];
-                weightInput.value = lastSet.weight; repsInput.value = lastSet.reps;
-            }
-        };
 
         document.querySelectorAll('.rpe-btn').forEach(btn => {
             btn.onclick = (e) => {
@@ -684,68 +714,39 @@
         function startRest() {
             const restSeconds = Math.round(baseTime * rpeModifier);
             targetEndTime = Date.now() + (restSeconds * 1000);
-            
-            workoutStatus.innerText = "REST";
+            workoutStatus.innerText = rpeModifier >= 1.3 ? "DEEP REST" : "REST";
             workoutStatus.className = "status-badge status-rest";
-            if (rpeModifier >= 1.3) {
-                workoutStatus.innerText = "DEEP REST";
-                workoutStatus.style.backgroundColor = "#ff4444";
-            }
-            skipRestBtn.style.display = "block";
-            timerDisplay.innerText = `${Math.floor(restSeconds/60).toString().padStart(2,'0')}:${(restSeconds%60).toString().padStart(2,'0')}`;
-
+            if (rpeModifier >= 1.3) workoutStatus.style.backgroundColor = "#ff4444";
+            document.getElementById('skip-rest-btn').style.display = "block";
+            
             timerInterval = setInterval(() => {
-                const remaining = Math.ceil((targetEndTime - Date.now()) / 1000);
-                if (remaining <= 0) {
-                    timerDisplay.innerText = "00:00";
-                    finishRest();
-                } else {
-                    timerDisplay.innerText = `${Math.floor(remaining/60).toString().padStart(2,'0')}:${(remaining%60).toString().padStart(2,'0')}`;
-                }
+                const left = Math.ceil((targetEndTime - Date.now()) / 1000);
+                if (left <= 0) { timerDisplay.innerText = "00:00"; finishRest(); }
+                else timerDisplay.innerText = `${Math.floor(left/60).toString().padStart(2,'0')}:${(left%60).toString().padStart(2,'0')}`;
             }, 1000);
         }
         
-        // ★ 休憩終了・スキップ時の処理（プッシュ通知とアラームの強化）
         function finishRest() { 
             clearInterval(timerInterval); 
-            
             try { playAlarm(); } catch(e) {} 
-            
-            try {
-                if ("Notification" in window && Notification.permission === "granted") {
-                    // バイブレーションが使える端末ならスマホを振動させる
-                    if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 500]);
-                    // 通知を送信。requireInteractionで画面に残りやすくする
-                    new Notification("⏳ 休憩終了！", { 
-                        body: "次のセットを始めましょう💪",
-                        requireInteraction: true 
-                    });
-                }
-            } catch(e) {}
-
-            setNumber++; 
-            updateUI(); 
+            try { if ("Notification" in window && Notification.permission === "granted") { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); new Notification("⏳ 休憩終了！", { body: "次のセットへ💪", requireInteraction: true }); } } catch(e) {}
+            setNumber++; updateUI(); 
         }
         
-        skipRestBtn.onclick = function() {
-            finishRest();
-        };
+        document.getElementById('skip-rest-btn').onclick = () => finishRest();
 
         function updateUI() {
             document.getElementById('set-counter').innerText = `第 ${setNumber} セット`;
-            setStartBtn.style.display = "block";
-            skipRestBtn.style.display = "none";
-            recordInputArea.style.display = "none";
-            workoutStatus.innerText = "READY";
-            workoutStatus.className = "status-badge";
-            workoutStatus.style.backgroundColor = ""; 
+            document.getElementById('set-start-btn').style.display = "block";
+            if(getYouTubeId(currentExerciseObj?.youtubeUrl)) document.getElementById('video-complete-btn').style.display = "block";
+            document.getElementById('skip-rest-btn').style.display = "none";
+            document.getElementById('record-input-area').style.display = "none";
+            workoutStatus.innerText = "READY"; workoutStatus.className = "status-badge"; workoutStatus.style.backgroundColor = ""; 
             timerDisplay.innerText = "00:00";
         }
 
         document.getElementById('next-exercise-btn').onclick = () => {
-            saveCurrentExerciseData();
-            doneExercisesInCurrentPart.push(currentExerciseObj.name);
-            runRoulette(currentProcessingPart, null);
+            saveCurrentExerciseData(); doneExercisesInCurrentPart.push(currentExerciseObj.name); runRoulette(currentProcessingPart, null);
         };
 
         document.getElementById('complete-part-btn').onclick = () => {
@@ -765,41 +766,24 @@
 
         document.getElementById('all-complete-btn').onclick = () => {
             const today = new Date().toLocaleDateString();
-            if (streakData.lastDate !== today) {
-                streakData.count++; streakData.lastDate = today;
-                localStorage.setItem('streakData', JSON.stringify(streakData));
-            }
-            
+            if (streakData.lastDate !== today) { streakData.count++; streakData.lastDate = today; localStorage.setItem('streakData', JSON.stringify(streakData)); }
             document.getElementById('review-summary').innerText = `総ボリューム: ${totalVolumeThisSession.toLocaleString()}kg`;
-            const reviewList = document.getElementById('review-log-list');
-            reviewList.innerHTML = "";
-            
-            if (allSessionSets.length === 0) {
-                reviewList.innerHTML = "<li>記録なし</li>";
-            } else {
-                allSessionSets.forEach(set => {
-                    reviewList.insertAdjacentHTML('beforeend', 
-                        `<li style="border-bottom: 1px solid #ccc; padding: 5px 0;">
-                            <strong>${set.partName} - ${set.exName}</strong><br>
-                            Set ${set.setNum}: ${set.weight}kg × ${set.reps}回
-                        </li>`
-                    );
-                });
-            }
-            
+            const rList = document.getElementById('review-log-list'); rList.innerHTML = "";
+            if (allSessionSets.length === 0) rList.innerHTML = "<li>記録なし</li>";
+            else allSessionSets.forEach(set => {
+                const wDisp = set.weight === 0 ? "自重" : `${set.weight}kg`;
+                const rDisp = set.isVideo ? "完了(動画)" : `${set.reps}回`;
+                rList.insertAdjacentHTML('beforeend', `<li style="border-bottom: 1px solid #ccc; padding: 5px 0;"><strong>${set.partName} - ${set.exName}</strong><br>Set ${set.setNum}: ${wDisp} × ${rDisp}</li>`);
+            });
             document.getElementById('review-modal').style.display = "flex";
         };
 
-        document.getElementById('final-finish-btn').onclick = () => {
-            location.reload();
-        };
-
-        document.getElementById('close-edit-btn').onclick = () => inlineEditArea.style.display = 'none';
-        document.getElementById('modal-close-btn').onclick = () => { document.getElementById('finish-modal').style.display = "none"; resultArea.style.display = "none"; };
+        document.getElementById('final-finish-btn').onclick = () => location.reload();
+        document.getElementById('close-edit-btn').onclick = () => document.getElementById('inline-edit-area').style.display = 'none';
+        document.getElementById('modal-close-btn').onclick = () => { document.getElementById('finish-modal').style.display = "none"; document.getElementById('roulette-result-area').style.display = "none"; };
         document.getElementById('back-btn').onclick = () => { if(confirm("今日の記録を終了してホームに戻りますか？")) location.reload(); };
         
-        updateStreak();
-        initButtons();
+        updateStreak(); initButtons();
     };
     </script>
 </body>
