@@ -90,7 +90,7 @@ h1 { font-size: 1.2rem; text-align: center; color: var(--primary); margin: 10px 
 .exercise-main-card h3 { font-size: 1.5rem; margin-bottom: 10px; }
 #target-area { margin-bottom: 15px; }
 
-/* 追加: メモエリア */
+/* メモエリア（トレーニング画面用） */
 .memo-area {
     margin-top: 10px;
 }
@@ -142,13 +142,13 @@ input[type="number"] { width: 70px; font-size: 1.5rem; font-weight: bold; border
 .btn-red { background: var(--red); color: white; }
 .btn-blue-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); margin-top: 10px; }
 
-/* RPE（キツさ）ボタン周りの改善 */
+/* RPE（キツさ）ボタン周り */
 .rpe-instruction {
     font-size: 0.85rem;
     color: var(--text);
     text-align: center;
     margin-bottom: 10px;
-    background-color: #fef08a; /* 目立たせるための背景色 */
+    background-color: #fef08a;
     padding: 8px;
     border-radius: 8px;
 }
@@ -159,7 +159,6 @@ input[type="number"] { width: 70px; font-size: 1.5rem; font-weight: bold; border
 #last-sets-list, #history-list { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; text-align: left; }
 #last-sets-list li { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px 0; }
 
-/* 履歴ログのデザイン改善 */
 .log-item {
     display: flex;
     justify-content: space-between;
@@ -199,5 +198,19 @@ input[type="number"] { width: 70px; font-size: 1.5rem; font-weight: bold; border
 .finish-nav { margin-top: 40px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 15px; border-top: 1px solid var(--border); }
 .btn-gold { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3); font-size: 1.1rem; padding: 18px; border-radius: 16px; width: 100%; font-weight: bold; border: none; }
 
-/* 継続日数バッジ */
 .streak-badge { background: rgba(255, 193, 7, 0.2); color: #ff9800; font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; margin-top: 5px; font-weight: bold; border: 1px solid #ff9800; }
+
+/* ★追加: ホーム画面用メモエリアのスタイル調整 */
+.memo-title {
+    font-size: 0.9rem;
+    color: var(--primary);
+    margin: 0 0 10px 0;
+}
+.home-memo-input {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+.home-memo-input::placeholder {
+    color: #94a3b8;
+}

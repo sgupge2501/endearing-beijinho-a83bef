@@ -40,8 +40,6 @@ window.onload = function() {
     let recoveryData = JSON.parse(localStorage.getItem('recoveryData')) || {}; 
     let exerciseRecords = JSON.parse(localStorage.getItem('exerciseRecords')) || {}; 
     let streakData = JSON.parse(localStorage.getItem('streakData')) || { lastDate: null, count: 0 };
-    
-    // 追加: 種目ごとの最終実施日時を記録するデータ
     let exerciseLastDate = JSON.parse(localStorage.getItem('exerciseLastDate')) || {};
 
     let selectedParts = new Set();
@@ -56,7 +54,6 @@ window.onload = function() {
     let baseTime = 60, rpeModifier = 1.0, setNumber = 1;
     let targetEndTime = 0; 
 
-    // マイナス入力を防ぐ関数
     const preventMinus = (e) => {
         if (e.key === '-' || e.key === 'e') {
             e.preventDefault();
@@ -87,8 +84,11 @@ window.onload = function() {
     const recommendArea = document.getElementById('recommend-area');
     const selectReadyPartsBtn = document.getElementById('select-ready-parts-btn');
     const exerciseMemo = document.getElementById('exercise-memo'); 
+    
+    // ★追加: ホーム画面用メモの要素取得と初期化
+    const homeMemo = document.getElementById('home-memo');
+    homeMemo.value = localStorage.getItem('homeMemo') || "";
 
-    // 音声アラーム関数 (Web Audio API)
     function playAlarm() {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
@@ -112,10 +112,16 @@ window.onload = function() {
         }
     }
 
+    // 種目用メモの保存
     exerciseMemo.addEventListener('input', (e) => {
         if (currentExerciseObj) {
             localStorage.setItem(`memo_${currentExerciseObj.name}`, e.target.value);
         }
+    });
+
+    // ★追加: ホーム画面用メモの保存処理（入力のたびに保存）
+    homeMemo.addEventListener('input', (e) => {
+        localStorage.setItem('homeMemo', e.target.value);
     });
 
     function updateStreak() {
@@ -250,30 +256,24 @@ window.onload = function() {
             count++;
             if (count > 15) {
                 clearInterval(shuffleInterval);
-                setExercise(part); // ここで重み付きランダムを使って決定
+                setExercise(part); 
             }
         }, 60);
     }
 
     function setExercise(part) {
-        // 現在のセッションですでにやった種目は除外
         const available = part.exercises.filter(ex => !doneExercisesInCurrentPart.includes(ex.name));
         const targetPool = available.length > 0 ? available : part.exercises;
 
-        // --- ★重み付きランダム抽選（Weighted Random）アルゴリズム ---
         const now = Date.now();
         let totalWeight = 0;
         
-        // 1. 各種目の「スコア（重み）」を計算
         const weightedPool = targetPool.map(ex => {
             const lastDate = exerciseLastDate[ex.name] || 0;
-            let weight = 100; // 初期値（一度もやっていない種目は最も出やすくする）
+            let weight = 100; 
             
             if (lastDate > 0) {
-                // 最後にやってからの経過日数を計算
                 const daysSince = (now - lastDate) / (1000 * 60 * 60 * 24);
-                // 経過日数 * 10 をスコアとする（最低1、最高100）
-                // 例: 1日経過ならスコア10、10日経過ならスコア100
                 weight = Math.max(1, Math.min(100, daysSince * 10));
             }
             
@@ -281,10 +281,8 @@ window.onload = function() {
             return { ...ex, weight };
         });
 
-        // 2. 合計スコアの範囲で乱数を生成
         let randomValue = Math.random() * totalWeight;
         
-        // 3. 乱数からスコアを順番に引いていき、0以下になったら決定
         for (let i = 0; i < weightedPool.length; i++) {
             randomValue -= weightedPool[i].weight;
             if (randomValue <= 0) {
@@ -292,7 +290,6 @@ window.onload = function() {
                 break;
             }
         }
-        // -------------------------------------------------------------
         
         resultText.innerText = currentExerciseObj.name;
         baseTime = currentExerciseObj.rest; 
@@ -308,7 +305,6 @@ window.onload = function() {
             weightInput.value = records[records.length - 1].weight; 
             repsInput.value = records[records.length - 1].reps;
         } else {
-            // 記録がない場合は初期化（※マイナス入力は防止済み）
             weightInput.value = "";
             repsInput.value = "";
         }
@@ -337,7 +333,6 @@ window.onload = function() {
         allSessionSets.push(setLog); 
         totalVolumeThisSession += (weight * reps);
         
-        // ★記録時に最終実施日時を更新して保存
         exerciseLastDate[currentExerciseObj.name] = Date.now();
         localStorage.setItem('exerciseLastDate', JSON.stringify(exerciseLastDate));
 
