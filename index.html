@@ -58,11 +58,9 @@
         .add-row-top { display: flex; gap: 5px; }
         .add-row input[type="text"], .add-row input[type="number"], .add-row select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
         
-        /* ★ 見切れ修正：数字入力欄の「上下矢印（スピンボタン）」を消す */
         input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type="number"] { -moz-appearance: textfield; }
 
-        /* バッジ */
         .tag-badge { font-size: 0.65rem; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; }
         .bg-gym { background: #3b82f6; } .bg-home { background: #f59e0b; } .bg-both { background: #8b5cf6; } .bg-bw { background: #10b981; } .bg-yt { background: #ef4444; }
 
@@ -277,7 +275,7 @@
         <div id="review-modal" class="modal" style="display: none;">
             <div class="modal-content">
                 <h2>🎉 今日の振り返り</h2>
-                <div id="review-summary" style="margin: 15px 0; font-weight: bold; color: var(--primary); font-size: 1.2rem;"></div>
+                <div id="review-summary" style="margin: 15px 0; font-size: 1.1rem; line-height: 1.5;"></div>
                 <div style="font-size: 0.8rem; color: gray; margin-bottom: 5px;">本日の全セットログ</div>
                 <ul id="review-log-list" class="manage-list" style="max-height: 250px; overflow-y: auto; text-align: left; background: #f8fafc; padding: 10px; border-radius: 8px;"></ul>
                 <button id="final-finish-btn" class="main-btn btn-gold" style="margin-top: 20px;">お疲れ様でした！(終了)</button>
@@ -349,19 +347,22 @@
         let currentEditingPart = null;
         let currentExerciseObj = null; 
         let currentExerciseSets = [];
+        
+        // ★ 自重と動画の集計用変数を追加
         let totalVolumeThisSession = 0;
+        let totalBwRepsThisSession = 0;
+        let totalVideoSessions = 0;
+        
         let allSessionSets = []; 
         let doneExercisesInCurrentPart = []; 
         let timerInterval = null, workoutInterval = null;
         let baseTime = 60, rpeModifier = 1.0, setNumber = 1, targetEndTime = 0; 
 
-        // ★ エラー修正：変数の宣言（箱の準備）をここで行う
         const weightInput = document.getElementById('actual-weight');
         const repsInput = document.getElementById('actual-reps');
-        const workoutStatus = document.getElementById('workout-status'); // ←これがないとセット開始時にエラーになる
-        const timerDisplay = document.getElementById('timer-display');   // ←これがないとタイマー表示でエラーになる
+        const workoutStatus = document.getElementById('workout-status');
+        const timerDisplay = document.getElementById('timer-display');
 
-        // モード切替のUI設定
         const btnGym = document.getElementById('mode-gym');
         const btnHome = document.getElementById('mode-home');
         btnGym.onclick = () => { currentWorkoutMode = 'gym'; btnGym.className = "mode-btn mode-active"; btnHome.className = "mode-btn mode-inactive"; };
@@ -449,8 +450,6 @@
             list.innerHTML = "";
             currentEditingPart.exercises.forEach((ex, idx) => {
                 const li = document.createElement('li');
-                
-                // ★ 見切れ対策：edit-rest の input の幅を 65px に広げました
                 li.innerHTML = `
                     <div style="display:flex; justify-content:space-between; width:100%;">
                         <input type="text" class="edit-name" value="${ex.name}" style="flex:1; font-weight:bold; border:1px solid transparent; background:transparent; font-size:0.9rem;" placeholder="種目名">
@@ -529,7 +528,9 @@
             document.getElementById('selection-screen').style.display = 'none';
             document.getElementById('roulette-screen').style.display = 'block';
             const sList = document.getElementById('selected-list'); sList.innerHTML = "";
-            totalVolumeThisSession = 0; allSessionSets = []; 
+            
+            // 変数リセット
+            totalVolumeThisSession = 0; totalBwRepsThisSession = 0; totalVideoSessions = 0; allSessionSets = []; 
             
             Array.from(selectedParts).sort((a,b)=>a.priority-b.priority).forEach((part, index) => {
                 const div = document.createElement('div'); div.className = 'workflow-item'; div.id = `workflow-${part.name}`;
@@ -622,14 +623,12 @@
             document.getElementById('roulette-result-area').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // ★ バグ修正：セット開始時のエラー（ReferenceError）を完全に解消
         document.getElementById('set-start-btn').onclick = () => {
             try {
                 clearInterval(timerInterval); clearInterval(workoutInterval);
                 document.getElementById('set-start-btn').style.display = "none";
                 document.getElementById('video-complete-btn').style.display = "none"; 
                 
-                // ここでエラーになっていた変数を、上部でしっかり定義しました！
                 workoutStatus.innerText = "TRAINING"; 
                 workoutStatus.className = "status-badge status-active";
                 
@@ -667,10 +666,20 @@
             setNumber++; updateUI();
         };
 
+        // ★ 各種記録の集計（自重と動画を分けて計算）
         function saveLog(weight, reps, isVideoMode) {
             const setLog = { partName: currentProcessingPart.name, exName: currentExerciseObj.name, weight, reps, setNum: currentExerciseSets.length + 1, id: Date.now(), isVideo: isVideoMode };
             currentExerciseSets.push(setLog); allSessionSets.push(setLog); 
-            totalVolumeThisSession += (weight * reps);
+            
+            // 記録の種類に応じて集計する箱を分ける
+            if (isVideoMode) {
+                totalVideoSessions++;
+            } else if (weight === 0) {
+                totalBwRepsThisSession += reps;
+            } else {
+                totalVolumeThisSession += (weight * reps);
+            }
+
             exerciseLastDate[currentExerciseObj.name] = Date.now();
             localStorage.setItem('exerciseLastDate', JSON.stringify(exerciseLastDate));
             renderHistoryList();
@@ -681,7 +690,16 @@
             if(!confirm("この記録を削除しますか？")) return;
             const logToDelete = allSessionSets.find(s => s.id === logId);
             if(!logToDelete) return;
-            totalVolumeThisSession -= (logToDelete.weight * logToDelete.reps);
+            
+            // 削除時も、それぞれの箱からマイナスする
+            if (logToDelete.isVideo) {
+                totalVideoSessions--;
+            } else if (logToDelete.weight === 0) {
+                totalBwRepsThisSession -= logToDelete.reps;
+            } else {
+                totalVolumeThisSession -= (logToDelete.weight * logToDelete.reps);
+            }
+
             allSessionSets = allSessionSets.filter(s => s.id !== logId);
             currentExerciseSets = currentExerciseSets.filter(s => s.id !== logId);
             if (currentExerciseSets.length > 0) exerciseRecords[currentExerciseObj.name] = currentExerciseSets.map(s => ({weight: s.weight, reps: s.reps}));
@@ -749,6 +767,7 @@
             saveCurrentExerciseData(); doneExercisesInCurrentPart.push(currentExerciseObj.name); runRoulette(currentProcessingPart, null);
         };
 
+        // この部位を完了ボタン（手動で完了させる）
         document.getElementById('complete-part-btn').onclick = () => {
             saveCurrentExerciseData();
             recoveryData[currentProcessingPart.name] = Date.now() + (currentProcessingPart.recoveryHours * 3600000);
@@ -764,10 +783,27 @@
             }
         }
 
+        // ★ 終了ボタンを押した時の「未完了部位の自動完了」と「達成感のある振り返り表示」
         document.getElementById('all-complete-btn').onclick = () => {
+            // ユーザーが「この部位を完了」を押し忘れて終了しようとした場合、1セットでもやっていれば自動で完了にする安全装置
+            if (currentProcessingPart && allSessionSets.some(s => s.partName === currentProcessingPart.name)) {
+                saveCurrentExerciseData();
+                recoveryData[currentProcessingPart.name] = Date.now() + (currentProcessingPart.recoveryHours * 3600000);
+                localStorage.setItem('recoveryData', JSON.stringify(recoveryData));
+            }
+
             const today = new Date().toLocaleDateString();
             if (streakData.lastDate !== today) { streakData.count++; streakData.lastDate = today; localStorage.setItem('streakData', JSON.stringify(streakData)); }
-            document.getElementById('review-summary').innerText = `総ボリューム: ${totalVolumeThisSession.toLocaleString()}kg`;
+            
+            // 振り返りメッセージの組み立て（0kg問題の解決）
+            let summaryText = [];
+            if (totalVolumeThisSession > 0) summaryText.push(`🏋️ 総挙上重量: <span style="color:var(--primary);">${totalVolumeThisSession.toLocaleString()}kg</span>`);
+            if (totalBwRepsThisSession > 0) summaryText.push(`🤸 自重トレ: <span style="color:var(--primary);">${totalBwRepsThisSession}回</span>`);
+            if (totalVideoSessions > 0) summaryText.push(`📺 動画トレ: <span style="color:var(--primary);">${totalVideoSessions}セッション</span>`);
+            if (summaryText.length === 0) summaryText.push("記録なし");
+
+            document.getElementById('review-summary').innerHTML = summaryText.join('<br>');
+            
             const rList = document.getElementById('review-log-list'); rList.innerHTML = "";
             if (allSessionSets.length === 0) rList.innerHTML = "<li>記録なし</li>";
             else allSessionSets.forEach(set => {
