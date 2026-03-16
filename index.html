@@ -61,8 +61,9 @@
         input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type="number"] { -moz-appearance: textfield; }
 
-        .tag-badge { font-size: 0.65rem; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; }
-        .bg-gym { background: #3b82f6; } .bg-home { background: #f59e0b; } .bg-both { background: #8b5cf6; } .bg-bw { background: #10b981; } .bg-yt { background: #ef4444; }
+        /* バッジ */
+        .tag-badge { font-size: 0.65rem; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; display:inline-block; }
+        .bg-gym { background: #3b82f6; } .bg-home { background: #f59e0b; } .bg-both { background: #8b5cf6; } .bg-bw { background: #10b981; } .bg-yt { background: #ef4444; } .bg-cardio { background: #0ea5e9; }
 
         /* === 5. YouTubeサムネイル用スタイル === */
         .yt-thumbnail-wrapper { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: none; background: #000;}
@@ -93,6 +94,7 @@
         .btn-red { background: var(--red); color: white; }
         .btn-youtube { background: #ef4444; color: white; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); } 
         .btn-blue-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); margin-top: 10px; }
+        .btn-white { background: #fff; border: 2px solid var(--primary); color: var(--primary); }
 
         .rpe-instruction { font-size: 0.85rem; color: var(--text); text-align: center; margin-bottom: 10px; background-color: #fef08a; padding: 8px; border-radius: 8px; }
         .button-group { display: flex; gap: 8px; margin-top: 5px; }
@@ -110,7 +112,7 @@
         .mini-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
 
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-        .modal-content { background: #fff; padding: 30px; border-radius: 20px; width: 100%; text-align: center; max-height: 80vh; overflow-y: auto;}
+        .modal-content { background: #fff; padding: 30px; border-radius: 20px; width: 100%; text-align: center; max-height: 85vh; overflow-y: auto;}
 
         .workflow-item { display: flex; flex-direction: column; align-items: center; }
         .workflow-arrow { font-size: 1.5rem; color: var(--primary); margin: -5px 0 8px; font-weight: bold; opacity: 0.6; }
@@ -123,6 +125,21 @@
         .btn-gold { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-size: 1.1rem; padding: 18px; border-radius: 16px; border: none; }
         .streak-badge { background: rgba(255, 193, 7, 0.2); color: #ff9800; font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; margin-top: 5px; font-weight: bold; border: 1px solid #ff9800; }
         .home-memo-input { background: #f8fafc; border: 1px solid var(--border); color: var(--text); }
+        
+        /* === 7. カレンダー履歴用スタイル === */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; margin-bottom: 10px;}
+        .calendar-header-day { font-weight: bold; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; }
+        .calendar-day { background: #fff; border-radius: 8px; padding: 10px 0; font-size: 0.9rem; cursor: pointer; border: 1px solid var(--border); transition: 0.2s; }
+        .calendar-day.empty { background: transparent; border: none; cursor: default; }
+        .calendar-day.has-log { background: var(--primary); color: white; font-weight: bold; border: 2px solid #1e40af; box-shadow: 0 2px 4px rgba(37,99,235,0.3);}
+        .calendar-day.selected { transform: scale(1.1); box-shadow: 0 0 0 2px #f59e0b; border-color: #f59e0b; z-index: 10;}
+        .calendar-day:hover:not(.empty) { opacity: 0.8; }
+        
+        .history-date-card { background: #f8fafc; border: 1px solid var(--border); padding: 15px; border-radius: 12px; margin-top: 15px; text-align: left; }
+        .history-date-title { font-weight: bold; color: var(--primary); font-size: 1.1rem; margin-bottom: 8px; border-bottom: 2px solid var(--border); padding-bottom: 4px;}
+        .history-stats { font-size: 0.85rem; color: var(--text); margin-bottom: 10px; }
+        .history-list-mini { list-style: none; padding: 0; margin: 0; font-size: 0.8rem; color: var(--text-muted); }
+        .history-list-mini li { padding: 5px 0; border-bottom: 1px dashed #e5e7eb; display:flex; justify-content:space-between; align-items:center;}
     </style>
 </head>
 <body>
@@ -149,6 +166,8 @@
                 </details>
             </div>
 
+            <button id="show-history-btn" class="main-btn btn-white">📅 過去のトレーニングカレンダー</button>
+
             <div class="card home-memo-card">
                 <h3 style="font-size:0.9rem; color:var(--primary); margin:0 0 10px 0;">📝 全体メモ</h3>
                 <textarea id="home-memo" placeholder="目標、トレーニング全体のメモを残す..." class="memo-input home-memo-input"></textarea>
@@ -173,13 +192,14 @@
                         <input type="text" id="new-ex-name" placeholder="種目名" style="flex:1;">
                         <input type="number" id="new-ex-rest" placeholder="秒" min="0" style="width:65px; text-align:center;">
                     </div>
-                    <div style="display:flex; gap:10px; align-items:center; font-size:0.8rem;">
+                    <div style="display:flex; gap:10px; align-items:center; font-size:0.8rem; flex-wrap:wrap;">
                         <select id="new-ex-loc" style="padding:5px; border-radius:5px; border:1px solid #ccc;">
                             <option value="both">ジム/家 両方可</option>
                             <option value="gym">ジム専用</option>
                             <option value="home">家トレ専用</option>
                         </select>
-                        <label><input type="checkbox" id="new-ex-bw"> 自重種目(0kg)</label>
+                        <label><input type="checkbox" id="new-ex-bw"> 自重(0kg)</label>
+                        <label><input type="checkbox" id="new-ex-cardio"> 有酸素(分)</label>
                         <button id="add-exercise-btn" class="mini-btn" style="margin-left:auto;">追加</button>
                     </div>
                     <input type="text" id="new-ex-yt" placeholder="YouTube URL (任意)" style="font-size:0.75rem; width:100%;">
@@ -228,12 +248,18 @@
                         
                         <div id="record-input-area" style="display: none;">
                             <div class="input-row">
-                                <div id="weight-input-container" style="display:inline-block;">
-                                    <input type="number" id="actual-weight" placeholder="0" step="0.5" min="0" style="width: 70px;">
-                                    <span style="font-size:1.5rem; margin:0 5px;">kg ×</span>
+                                <div id="weight-reps-container" style="display:flex; align-items:center;">
+                                    <div id="weight-input-container" style="display:inline-block;">
+                                        <input type="number" id="actual-weight" placeholder="0" step="0.5" min="0" style="width: 70px;">
+                                        <span style="font-size:1.5rem; margin:0 5px;">kg ×</span>
+                                    </div>
+                                    <input type="number" id="actual-reps" placeholder="回数" min="0" style="width: 80px;">
+                                    <span id="reps-label" style="font-size:1.5rem; margin-left:5px; display:none;">回</span>
                                 </div>
-                                <input type="number" id="actual-reps" placeholder="回数" min="0" style="width: 80px;">
-                                <span id="reps-label" style="font-size:1.5rem; margin-left:5px; display:none;">回</span>
+                                <div id="cardio-input-container" style="display:none; align-items:center;">
+                                    <input type="number" id="actual-minutes" placeholder="時間" min="0" style="width: 80px;">
+                                    <span style="font-size:1.5rem; margin-left:5px;">分</span>
+                                </div>
                             </div>
                             <button id="set-end-record-btn" class="main-btn btn-red">記録して休憩</button>
                         </div>
@@ -281,43 +307,72 @@
                 <button id="final-finish-btn" class="main-btn btn-gold" style="margin-top: 20px;">お疲れ様でした！(終了)</button>
             </div>
         </div>
+
+        <div id="history-modal" class="modal" style="display: none;">
+            <div class="modal-content" style="background:#f3f4f6; padding:20px;">
+                <h2 style="color:var(--primary); margin-top:0;">📅 トレーニング記録</h2>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                    <button id="prev-month-btn" class="mini-btn">◀ 先月</button>
+                    <span id="calendar-month-year" style="font-weight:bold; font-size:1.1rem;"></span>
+                    <button id="next-month-btn" class="mini-btn">次月 ▶</button>
+                </div>
+                
+                <div class="calendar-grid">
+                    <div class="calendar-header-day">日</div><div class="calendar-header-day">月</div><div class="calendar-header-day">火</div>
+                    <div class="calendar-header-day">水</div><div class="calendar-header-day">木</div><div class="calendar-header-day">金</div><div class="calendar-header-day">土</div>
+                </div>
+                <div id="calendar-days" class="calendar-grid"></div>
+
+                <div id="calendar-log-details" style="display: none;"></div>
+
+                <button id="close-history-btn" class="main-btn btn-blue" style="margin-top: 20px;">閉じる</button>
+            </div>
+        </div>
     </div>
 
     <script>
     window.onload = function() {
+        // ★ プッシュ通知の許可リクエスト（iOS Safari等はユーザー操作がないと弾かれる場合あり）
         try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); } catch(e) {}
 
         const defaultBodyParts = [
             { name: "脚", priority: 1, recoveryHours: 72, exercises: [
-                { name: "バーベルスクワット", rest: 180, loc: "gym", bw: false }, 
-                { name: "レッグプレス", rest: 180, loc: "gym", bw: false },
-                { name: "自重スクワット", rest: 60, loc: "both", bw: true },
-                { name: "ブルガリアンスクワット", rest: 120, loc: "both", bw: true }
+                { name: "バーベルスクワット", rest: 180, loc: "gym", bw: false, cardio: false }, 
+                { name: "レッグプレス", rest: 180, loc: "gym", bw: false, cardio: false },
+                { name: "自重スクワット", rest: 60, loc: "both", bw: true, cardio: false },
+                { name: "ブルガリアンスクワット", rest: 120, loc: "both", bw: true, cardio: false }
             ]},
             { name: "背中", priority: 2, recoveryHours: 72, exercises: [
-                { name: "ラットプルダウン", rest: 120, loc: "gym", bw: false }, 
-                { name: "懸垂(チンニング)", rest: 180, loc: "both", bw: true },
-                { name: "バックエクステンション", rest: 90, loc: "home", bw: true }
+                { name: "ラットプルダウン", rest: 120, loc: "gym", bw: false, cardio: false }, 
+                { name: "懸垂(チンニング)", rest: 180, loc: "both", bw: true, cardio: false },
+                { name: "バックエクステンション", rest: 90, loc: "home", bw: true, cardio: false }
             ]},
             { name: "胸", priority: 3, recoveryHours: 48, exercises: [
-                { name: "ベンチプレス", rest: 180, loc: "gym", bw: false }, 
-                { name: "チェストプレス", rest: 120, loc: "gym", bw: false },
-                { name: "腕立て伏せ", rest: 90, loc: "both", bw: true }
+                { name: "ベンチプレス", rest: 180, loc: "gym", bw: false, cardio: false }, 
+                { name: "チェストプレス", rest: 120, loc: "gym", bw: false, cardio: false },
+                { name: "腕立て伏せ", rest: 90, loc: "both", bw: true, cardio: false }
             ]},
             { name: "肩", priority: 4, recoveryHours: 48, exercises: [
-                { name: "ショルダープレス", rest: 120, loc: "gym", bw: false }, 
-                { name: "サイドレイズ", rest: 60, loc: "gym", bw: false },
-                { name: "パイクプッシュアップ", rest: 90, loc: "home", bw: true }
+                { name: "ショルダープレス", rest: 120, loc: "gym", bw: false, cardio: false }, 
+                { name: "サイドレイズ", rest: 60, loc: "gym", bw: false, cardio: false },
+                { name: "パイクプッシュアップ", rest: 90, loc: "home", bw: true, cardio: false }
             ]},
             { name: "腕", priority: 5, recoveryHours: 24, exercises: [
-                { name: "アームカール", rest: 60, loc: "gym", bw: false },
-                { name: "フレンチプレス(自重)", rest: 60, loc: "both", bw: true },
-                { name: "ディップス", rest: 120, loc: "both", bw: true }
+                { name: "アームカール", rest: 60, loc: "gym", bw: false, cardio: false },
+                { name: "フレンチプレス(自重)", rest: 60, loc: "both", bw: true, cardio: false },
+                { name: "ディップス", rest: 120, loc: "both", bw: true, cardio: false }
             ]},
             { name: "腹筋", priority: 6, recoveryHours: 24, exercises: [
-                { name: "クランチ", rest: 60, loc: "both", bw: true }, 
-                { name: "プランク", rest: 60, loc: "both", bw: true },
-                { name: "3分間鬼の腹筋(動画)", rest: 60, loc: "home", bw: true, youtubeUrl: "https://www.youtube.com/watch?v=1we3XigEqkc" }
+                { name: "クランチ", rest: 60, loc: "both", bw: true, cardio: false }, 
+                { name: "プランク", rest: 60, loc: "both", bw: true, cardio: false },
+                { name: "3分間鬼の腹筋(動画)", rest: 60, loc: "home", bw: true, cardio: false, youtubeUrl: "https://www.youtube.com/watch?v=1we3XigEqkc" }
+            ]},
+            { name: "有酸素", priority: 7, recoveryHours: 24, exercises: [
+                { name: "ランニングマシン", rest: 0, loc: "gym", bw: false, cardio: true },
+                { name: "エアロバイク", rest: 0, loc: "gym", bw: false, cardio: true },
+                { name: "屋外ランニング", rest: 0, loc: "both", bw: false, cardio: true },
+                { name: "HIIT有酸素(動画)", rest: 0, loc: "home", bw: false, cardio: true, youtubeUrl: "https://www.youtube.com/watch?v=q20pLhdoEoY" }
             ]}
         ];
 
@@ -327,9 +382,11 @@
             savedBodyParts.forEach(p => p.exercises.forEach(ex => { 
                 if(!ex.loc) ex.loc = "both"; 
                 if(ex.bw === undefined) ex.bw = false; 
+                if(ex.cardio === undefined) ex.cardio = false;
                 if(!ex.rest) ex.rest = 60;
             }));
             bodyParts = savedBodyParts;
+            if (!bodyParts.some(p => p.name === "有酸素")) bodyParts.push(defaultBodyParts.find(p => p.name === "有酸素"));
             localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
         } else {
             bodyParts = JSON.parse(JSON.stringify(defaultBodyParts));
@@ -340,6 +397,7 @@
         let exerciseRecords = JSON.parse(localStorage.getItem('exerciseRecords')) || {}; 
         let streakData = JSON.parse(localStorage.getItem('streakData')) || { lastDate: null, count: 0 };
         let exerciseLastDate = JSON.parse(localStorage.getItem('exerciseLastDate')) || {};
+        let dailyLogsDB = JSON.parse(localStorage.getItem('dailyLogsDB')) || {};
 
         let selectedParts = new Set();
         let currentWorkoutMode = 'gym'; 
@@ -348,10 +406,10 @@
         let currentExerciseObj = null; 
         let currentExerciseSets = [];
         
-        // ★ 自重と動画の集計用変数を追加
         let totalVolumeThisSession = 0;
         let totalBwRepsThisSession = 0;
         let totalVideoSessions = 0;
+        let totalCardioMinsThisSession = 0; 
         
         let allSessionSets = []; 
         let doneExercisesInCurrentPart = []; 
@@ -360,6 +418,7 @@
 
         const weightInput = document.getElementById('actual-weight');
         const repsInput = document.getElementById('actual-reps');
+        const minsInput = document.getElementById('actual-minutes'); 
         const workoutStatus = document.getElementById('workout-status');
         const timerDisplay = document.getElementById('timer-display');
 
@@ -369,7 +428,7 @@
         btnHome.onclick = () => { currentWorkoutMode = 'home'; btnHome.className = "mode-btn mode-active"; btnGym.className = "mode-btn mode-inactive"; };
 
         const preventMinus = (e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); };
-        weightInput.onkeydown = preventMinus; repsInput.onkeydown = preventMinus;
+        weightInput.onkeydown = preventMinus; repsInput.onkeydown = preventMinus; minsInput.onkeydown = preventMinus;
 
         function playAlarm() {
             try {
@@ -392,11 +451,17 @@
         homeMemo.value = localStorage.getItem('homeMemo') || "";
         homeMemo.addEventListener('input', (e) => localStorage.setItem('homeMemo', e.target.value));
 
+        // ★ 日付を統一フォーマット（YYYY/M/D）に揃える便利関数
+        function getFormatDateStr(dateObj) {
+            return dateObj.getFullYear() + '/' + (dateObj.getMonth() + 1) + '/' + dateObj.getDate();
+        }
+
         function updateStreak() {
-            const today = new Date().toLocaleDateString();
-            if (streakData.lastDate && streakData.lastDate !== today) {
+            const todayStr = getFormatDateStr(new Date());
+            if (streakData.lastDate && streakData.lastDate !== todayStr) {
                 const last = new Date(streakData.lastDate);
-                if (Math.ceil(Math.abs(new Date(today) - last) / 86400000) > 1) streakData.count = 0; 
+                const today = new Date(todayStr);
+                if (Math.ceil(Math.abs(today - last) / 86400000) > 1) streakData.count = 0; 
             }
             if (streakData.count > 0) {
                 document.getElementById('streak-info').style.display = 'inline-block';
@@ -450,19 +515,21 @@
             list.innerHTML = "";
             currentEditingPart.exercises.forEach((ex, idx) => {
                 const li = document.createElement('li');
+                
                 li.innerHTML = `
                     <div style="display:flex; justify-content:space-between; width:100%;">
                         <input type="text" class="edit-name" value="${ex.name}" style="flex:1; font-weight:bold; border:1px solid transparent; background:transparent; font-size:0.9rem;" placeholder="種目名">
                         <button class="del-btn">削除</button>
                     </div>
-                    <div style="display:flex; gap:10px; align-items:center; font-size:0.8rem; width:100%;">
-                        休憩:<input type="number" class="edit-rest" value="${ex.rest}" style="width:65px; padding:4px; border:1px solid #ccc; border-radius:4px; text-align:center;">s
+                    <div style="display:flex; gap:10px; align-items:center; font-size:0.8rem; width:100%; flex-wrap:wrap;">
+                        休:<input type="number" class="edit-rest" value="${ex.rest}" style="width:55px; padding:4px; border:1px solid #ccc; border-radius:4px; text-align:center;">s
                         <select class="edit-loc" style="padding:4px; border:1px solid #ccc; border-radius:4px;">
                             <option value="both" ${ex.loc === 'both' ? 'selected' : ''}>共通</option>
                             <option value="gym" ${ex.loc === 'gym' ? 'selected' : ''}>ジム</option>
                             <option value="home" ${ex.loc === 'home' ? 'selected' : ''}>家</option>
                         </select>
                         <label><input type="checkbox" class="edit-bw" ${ex.bw ? 'checked' : ''}>自重</label>
+                        <label><input type="checkbox" class="edit-cardio" ${ex.cardio ? 'checked' : ''}>有酸素</label>
                     </div>
                     <input type="text" class="edit-yt" value="${ex.youtubeUrl || ''}" placeholder="YouTube URL (任意)" style="font-size:0.75rem; width:100%; padding:4px; border:1px solid #ccc; border-radius:4px;">
                 `;
@@ -472,6 +539,7 @@
                     ex.rest = Math.max(0, parseInt(li.querySelector('.edit-rest').value) || 0);
                     ex.loc = li.querySelector('.edit-loc').value;
                     ex.bw = li.querySelector('.edit-bw').checked;
+                    ex.cardio = li.querySelector('.edit-cardio').checked;
                     ex.youtubeUrl = li.querySelector('.edit-yt').value.trim();
                     localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
                 };
@@ -480,6 +548,7 @@
                 li.querySelector('.edit-rest').onchange = updateData;
                 li.querySelector('.edit-loc').onchange = updateData;
                 li.querySelector('.edit-bw').onchange = updateData;
+                li.querySelector('.edit-cardio').onchange = updateData;
                 li.querySelector('.edit-yt').onchange = updateData;
 
                 li.querySelector('.del-btn').onclick = () => {
@@ -498,15 +567,16 @@
             const rest = parseInt(document.getElementById('new-ex-rest').value) || 60;
             const loc = document.getElementById('new-ex-loc').value;
             const isBw = document.getElementById('new-ex-bw').checked;
+            const isCardio = document.getElementById('new-ex-cardio').checked;
             const ytUrl = document.getElementById('new-ex-yt').value.trim();
             
             if (name) {
-                let newEx = { name: name, rest: Math.max(0, rest), loc: loc, bw: isBw };
+                let newEx = { name: name, rest: Math.max(0, rest), loc: loc, bw: isBw, cardio: isCardio };
                 if (ytUrl) newEx.youtubeUrl = ytUrl; 
                 currentEditingPart.exercises.push(newEx);
                 
                 document.getElementById('new-ex-name').value = ""; document.getElementById('new-ex-rest').value = "";
-                document.getElementById('new-ex-yt').value = ""; document.getElementById('new-ex-bw').checked = false;
+                document.getElementById('new-ex-yt').value = ""; document.getElementById('new-ex-bw').checked = false; document.getElementById('new-ex-cardio').checked = false;
                 localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
                 renderEditList();
             }
@@ -529,8 +599,7 @@
             document.getElementById('roulette-screen').style.display = 'block';
             const sList = document.getElementById('selected-list'); sList.innerHTML = "";
             
-            // 変数リセット
-            totalVolumeThisSession = 0; totalBwRepsThisSession = 0; totalVideoSessions = 0; allSessionSets = []; 
+            totalVolumeThisSession = 0; totalBwRepsThisSession = 0; totalVideoSessions = 0; totalCardioMinsThisSession = 0; allSessionSets = []; 
             
             Array.from(selectedParts).sort((a,b)=>a.priority-b.priority).forEach((part, index) => {
                 const div = document.createElement('div'); div.className = 'workflow-item'; div.id = `workflow-${part.name}`;
@@ -599,25 +668,46 @@
                 ytBtn.style.display = "none"; 
             }
 
-            if (currentExerciseObj.bw) {
-                document.getElementById('weight-input-container').style.display = "none";
-                document.getElementById('reps-label').style.display = "inline-block";
+            const wrContainer = document.getElementById('weight-reps-container');
+            const cardioContainer = document.getElementById('cardio-input-container');
+            const wContainer = document.getElementById('weight-input-container');
+            const rLabel = document.getElementById('reps-label');
+
+            if (currentExerciseObj.cardio) {
+                wrContainer.style.display = "none";
+                cardioContainer.style.display = "flex";
             } else {
-                document.getElementById('weight-input-container').style.display = "inline-block";
-                document.getElementById('reps-label').style.display = "none";
+                wrContainer.style.display = "flex";
+                cardioContainer.style.display = "none";
+                if (currentExerciseObj.bw) {
+                    wContainer.style.display = "none";
+                    rLabel.style.display = "inline-block";
+                } else {
+                    wContainer.style.display = "inline-block";
+                    rLabel.style.display = "none";
+                }
             }
 
             const records = exerciseRecords[currentExerciseObj.name] || [];
             const hList = document.getElementById('last-sets-list');
             hList.innerHTML = records.length ? "" : "<li>記録なし</li>";
             records.forEach((rec, idx) => {
-                const weightText = rec.weight === 0 ? "自重" : `${rec.weight}kg`;
-                hList.insertAdjacentHTML('beforeend', `<li><span>Set ${idx+1}</span><strong>${weightText} × ${rec.reps}回</strong></li>`);
+                let text = "";
+                if (rec.isCardio) text = `${rec.mins} 分`;
+                else if (rec.weight === 0) text = `自重 × ${rec.reps} 回`;
+                else text = `${rec.weight}kg × ${rec.reps}回`;
+                hList.insertAdjacentHTML('beforeend', `<li><span>Set ${idx+1}</span><strong>${text}</strong></li>`);
             });
+            
             if (records.length > 0) {
-                weightInput.value = records[records.length - 1].weight === 0 ? "" : records[records.length - 1].weight;
-                repsInput.value = records[records.length - 1].reps;
-            } else { weightInput.value = ""; repsInput.value = ""; }
+                const last = records[records.length - 1];
+                if (currentExerciseObj.cardio) {
+                    minsInput.value = last.mins || "";
+                } else {
+                    weightInput.value = last.weight === 0 ? "" : last.weight;
+                    repsInput.value = last.reps;
+                }
+            } else { weightInput.value = ""; repsInput.value = ""; minsInput.value = ""; }
             
             updateUI();
             document.getElementById('roulette-result-area').scrollIntoView({ behavior: 'smooth' });
@@ -639,41 +729,43 @@
                 }, 1000);
                 document.getElementById('record-input-area').style.display = "block";
                 
-                if (currentExerciseSets.length > 0) {
-                    const last = currentExerciseSets[currentExerciseSets.length - 1];
-                    weightInput.value = last.weight === 0 ? "" : last.weight; repsInput.value = last.reps;
-                }
             } catch(e) {
                 console.error("セット開始エラー:", e);
-                alert("エラーが発生しました。画面を再読み込みしてください。");
+                alert("エラーが発生しました。");
             }
         };
 
         document.getElementById('set-end-record-btn').onclick = () => {
             clearInterval(workoutInterval);
-            const weight = currentExerciseObj.bw ? 0 : (weightInput.value.trim() === "" ? 0 : Math.max(0, parseFloat(weightInput.value)));
-            const reps = Math.max(0, parseInt(repsInput.value) || 0);
+            let weight = 0, reps = 0, mins = 0;
             
-            saveLog(weight, reps, false);
+            if (currentExerciseObj.cardio) {
+                mins = Math.max(0, parseInt(minsInput.value) || 0);
+            } else {
+                weight = currentExerciseObj.bw ? 0 : (weightInput.value.trim() === "" ? 0 : Math.max(0, parseFloat(weightInput.value)));
+                reps = Math.max(0, parseInt(repsInput.value) || 0);
+            }
+            
+            saveLog(weight, reps, mins, false, currentExerciseObj.cardio);
             document.getElementById('record-input-area').style.display = "none";
             document.getElementById('rpe-selection-area').style.display = "block";
         };
 
         document.getElementById('video-complete-btn').onclick = () => {
             clearInterval(timerInterval); clearInterval(workoutInterval);
-            saveLog(0, 1, true); 
+            saveLog(0, 1, 0, true, currentExerciseObj.cardio); 
             alert("動画トレーニングお疲れ様でした！");
             setNumber++; updateUI();
         };
 
-        // ★ 各種記録の集計（自重と動画を分けて計算）
-        function saveLog(weight, reps, isVideoMode) {
-            const setLog = { partName: currentProcessingPart.name, exName: currentExerciseObj.name, weight, reps, setNum: currentExerciseSets.length + 1, id: Date.now(), isVideo: isVideoMode };
+        function saveLog(weight, reps, mins, isVideoMode, isCardioMode) {
+            const setLog = { partName: currentProcessingPart.name, exName: currentExerciseObj.name, weight, reps, mins, setNum: currentExerciseSets.length + 1, id: Date.now(), isVideo: isVideoMode, isCardio: isCardioMode };
             currentExerciseSets.push(setLog); allSessionSets.push(setLog); 
             
-            // 記録の種類に応じて集計する箱を分ける
             if (isVideoMode) {
                 totalVideoSessions++;
+            } else if (isCardioMode) {
+                totalCardioMinsThisSession += mins;
             } else if (weight === 0) {
                 totalBwRepsThisSession += reps;
             } else {
@@ -691,9 +783,10 @@
             const logToDelete = allSessionSets.find(s => s.id === logId);
             if(!logToDelete) return;
             
-            // 削除時も、それぞれの箱からマイナスする
             if (logToDelete.isVideo) {
                 totalVideoSessions--;
+            } else if (logToDelete.isCardio) {
+                totalCardioMinsThisSession -= logToDelete.mins;
             } else if (logToDelete.weight === 0) {
                 totalBwRepsThisSession -= logToDelete.reps;
             } else {
@@ -702,8 +795,10 @@
 
             allSessionSets = allSessionSets.filter(s => s.id !== logId);
             currentExerciseSets = currentExerciseSets.filter(s => s.id !== logId);
-            if (currentExerciseSets.length > 0) exerciseRecords[currentExerciseObj.name] = currentExerciseSets.map(s => ({weight: s.weight, reps: s.reps}));
-            else delete exerciseRecords[currentExerciseObj.name];
+            if (currentExerciseSets.length > 0) {
+                exerciseRecords[currentExerciseObj.name] = currentExerciseSets.map(s => ({weight: s.weight, reps: s.reps, mins: s.mins, isCardio: s.isCardio}));
+            } else delete exerciseRecords[currentExerciseObj.name];
+            
             localStorage.setItem('exerciseRecords', JSON.stringify(exerciseRecords));
             renderHistoryList();
             if(allSessionSets.length === 0) document.getElementById('session-history').style.display = "none";
@@ -714,9 +809,14 @@
             list.innerHTML = "";
             allSessionSets.forEach(set => {
                 const li = document.createElement('li'); li.className = "log-item";
-                const weightDisplay = set.weight === 0 ? "自重" : `${set.weight}kg`;
-                const repsDisplay = set.isVideo ? "完了(動画)" : `${set.reps}回`;
-                li.innerHTML = `<div class="log-info"><span class="set-badge">Set ${set.setNum}</span><span>${set.partName}：${set.exName}</span><strong style="margin-left:10px;">${weightDisplay} × ${repsDisplay}</strong></div><button class="del-log-btn" onclick="deleteLog(${set.id})">🗑️</button>`;
+                
+                let displayTxt = "";
+                if (set.isVideo) displayTxt = "完了(動画)";
+                else if (set.isCardio) displayTxt = `${set.mins} 分`;
+                else if (set.weight === 0) displayTxt = `自重 × ${set.reps}回`;
+                else displayTxt = `${set.weight}kg × ${set.reps}回`;
+
+                li.innerHTML = `<div class="log-info"><span class="set-badge">Set ${set.setNum}</span><span>${set.partName}：${set.exName}</span><strong style="margin-left:10px;">${displayTxt}</strong></div><button class="del-log-btn" onclick="deleteLog(${set.id})">🗑️</button>`;
                 list.appendChild(li);
             });
         }
@@ -747,7 +847,13 @@
         function finishRest() { 
             clearInterval(timerInterval); 
             try { playAlarm(); } catch(e) {} 
-            try { if ("Notification" in window && Notification.permission === "granted") { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); new Notification("⏳ 休憩終了！", { body: "次のセットへ💪", requireInteraction: true }); } } catch(e) {}
+            // ★ プッシュ通知を送信する処理
+            try { 
+                if ("Notification" in window && Notification.permission === "granted") { 
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]); 
+                    new Notification("⏳ 休憩終了！", { body: "次のセットへ💪", requireInteraction: true }); 
+                } 
+            } catch(e) {}
             setNumber++; updateUI(); 
         }
         
@@ -767,7 +873,6 @@
             saveCurrentExerciseData(); doneExercisesInCurrentPart.push(currentExerciseObj.name); runRoulette(currentProcessingPart, null);
         };
 
-        // この部位を完了ボタン（手動で完了させる）
         document.getElementById('complete-part-btn').onclick = () => {
             saveCurrentExerciseData();
             recoveryData[currentProcessingPart.name] = Date.now() + (currentProcessingPart.recoveryHours * 3600000);
@@ -778,27 +883,35 @@
 
         function saveCurrentExerciseData() {
             if(currentExerciseSets.length > 0) {
-                exerciseRecords[currentExerciseObj.name] = currentExerciseSets.map(s => ({weight: s.weight, reps: s.reps}));
+                exerciseRecords[currentExerciseObj.name] = currentExerciseSets.map(s => ({weight: s.weight, reps: s.reps, mins: s.mins, isCardio: s.isCardio}));
                 localStorage.setItem('exerciseRecords', JSON.stringify(exerciseRecords));
             }
         }
 
-        // ★ 終了ボタンを押した時の「未完了部位の自動完了」と「達成感のある振り返り表示」
         document.getElementById('all-complete-btn').onclick = () => {
-            // ユーザーが「この部位を完了」を押し忘れて終了しようとした場合、1セットでもやっていれば自動で完了にする安全装置
             if (currentProcessingPart && allSessionSets.some(s => s.partName === currentProcessingPart.name)) {
                 saveCurrentExerciseData();
                 recoveryData[currentProcessingPart.name] = Date.now() + (currentProcessingPart.recoveryHours * 3600000);
                 localStorage.setItem('recoveryData', JSON.stringify(recoveryData));
             }
 
-            const today = new Date().toLocaleDateString();
-            if (streakData.lastDate !== today) { streakData.count++; streakData.lastDate = today; localStorage.setItem('streakData', JSON.stringify(streakData)); }
+            const todayStr = getFormatDateStr(new Date());
+            if (streakData.lastDate !== todayStr) { streakData.count++; streakData.lastDate = todayStr; localStorage.setItem('streakData', JSON.stringify(streakData)); }
             
-            // 振り返りメッセージの組み立て（0kg問題の解決）
+            if (!dailyLogsDB[todayStr]) {
+                dailyLogsDB[todayStr] = { volume: 0, bwReps: 0, videoSessions: 0, cardioMins: 0, sets: [] };
+            }
+            dailyLogsDB[todayStr].volume += totalVolumeThisSession;
+            dailyLogsDB[todayStr].bwReps += totalBwRepsThisSession;
+            dailyLogsDB[todayStr].videoSessions += totalVideoSessions;
+            dailyLogsDB[todayStr].cardioMins += totalCardioMinsThisSession;
+            dailyLogsDB[todayStr].sets.push(...allSessionSets); 
+            localStorage.setItem('dailyLogsDB', JSON.stringify(dailyLogsDB));
+
             let summaryText = [];
             if (totalVolumeThisSession > 0) summaryText.push(`🏋️ 総挙上重量: <span style="color:var(--primary);">${totalVolumeThisSession.toLocaleString()}kg</span>`);
             if (totalBwRepsThisSession > 0) summaryText.push(`🤸 自重トレ: <span style="color:var(--primary);">${totalBwRepsThisSession}回</span>`);
+            if (totalCardioMinsThisSession > 0) summaryText.push(`🏃 有酸素: <span style="color:var(--primary);">${totalCardioMinsThisSession}分</span>`);
             if (totalVideoSessions > 0) summaryText.push(`📺 動画トレ: <span style="color:var(--primary);">${totalVideoSessions}セッション</span>`);
             if (summaryText.length === 0) summaryText.push("記録なし");
 
@@ -807,13 +920,102 @@
             const rList = document.getElementById('review-log-list'); rList.innerHTML = "";
             if (allSessionSets.length === 0) rList.innerHTML = "<li>記録なし</li>";
             else allSessionSets.forEach(set => {
-                const wDisp = set.weight === 0 ? "自重" : `${set.weight}kg`;
-                const rDisp = set.isVideo ? "完了(動画)" : `${set.reps}回`;
-                rList.insertAdjacentHTML('beforeend', `<li style="border-bottom: 1px solid #ccc; padding: 5px 0;"><strong>${set.partName} - ${set.exName}</strong><br>Set ${set.setNum}: ${wDisp} × ${rDisp}</li>`);
+                let txt = "";
+                if (set.isVideo) txt = "完了(動画)";
+                else if (set.isCardio) txt = `${set.mins} 分`;
+                else if (set.weight === 0) txt = `自重 × ${set.reps}回`;
+                else txt = `${set.weight}kg × ${set.reps}回`;
+                rList.insertAdjacentHTML('beforeend', `<li style="border-bottom: 1px solid #ccc; padding: 5px 0;"><strong>${set.partName} - ${set.exName}</strong><br>Set ${set.setNum}: ${txt}</li>`);
             });
             document.getElementById('review-modal').style.display = "flex";
         };
 
+        // ★ カレンダー描画機能
+        let currentCalYear = new Date().getFullYear();
+        let currentCalMonth = new Date().getMonth(); // 0が1月, 11が12月
+
+        function renderCalendar(year, month) {
+            const daysContainer = document.getElementById('calendar-days');
+            const monthYearText = document.getElementById('calendar-month-year');
+            const detailsContainer = document.getElementById('calendar-log-details');
+            
+            daysContainer.innerHTML = "";
+            detailsContainer.style.display = "none";
+            monthYearText.innerText = `${year}年 ${month + 1}月`;
+
+            // その月の1日の曜日（0:日, 1:月...）と、その月の日数を取得
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // 空白のマス（1日が始まる前の曜日分）
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = "calendar-day empty";
+                daysContainer.appendChild(emptyDiv);
+            }
+
+            // 日付のマスを作る
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = "calendar-day";
+                dayDiv.innerText = day;
+
+                // データベースにその日の記録があるかチェック (YYYY/M/D形式)
+                const dateKey = `${year}/${month + 1}/${day}`;
+                if (dailyLogsDB[dateKey] && dailyLogsDB[dateKey].sets.length > 0) {
+                    dayDiv.classList.add("has-log"); // 記録があれば青色にする
+                    
+                    // タップした時の処理
+                    dayDiv.onclick = () => {
+                        // 選択された日付のスタイルを変える
+                        document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+                        dayDiv.classList.add('selected');
+                        
+                        // 詳細ログを下に表示する
+                        const data = dailyLogsDB[dateKey];
+                        let stats = [];
+                        if (data.volume > 0) stats.push(`🏋️ ${data.volume.toLocaleString()}kg`);
+                        if (data.bwReps > 0) stats.push(`🤸 ${data.bwReps}回`);
+                        if (data.cardioMins > 0) stats.push(`🏃 ${data.cardioMins}分`);
+                        if (data.videoSessions > 0) stats.push(`📺 ${data.videoSessions}回`);
+                        
+                        let setsHtml = data.sets.map(s => {
+                            let txt = s.isVideo ? "動画完了" : (s.isCardio ? `${s.mins}分` : (s.weight === 0 ? `自重×${s.reps}` : `${s.weight}kg×${s.reps}`));
+                            return `<li>${s.exName} <span style="float:right; font-weight:bold;">${txt}</span></li>`;
+                        }).join("");
+
+                        detailsContainer.innerHTML = `
+                            <div class="history-date-title">${dateKey} の記録</div>
+                            <div class="history-stats">${stats.join(' / ')}</div>
+                            <ul class="history-list-mini">${setsHtml}</ul>
+                        `;
+                        detailsContainer.style.display = "block";
+                    };
+                }
+                daysContainer.appendChild(dayDiv);
+            }
+        }
+
+        document.getElementById('show-history-btn').onclick = () => {
+            currentCalYear = new Date().getFullYear();
+            currentCalMonth = new Date().getMonth();
+            renderCalendar(currentCalYear, currentCalMonth);
+            document.getElementById('history-modal').style.display = "flex";
+        };
+
+        document.getElementById('prev-month-btn').onclick = () => {
+            currentCalMonth--;
+            if (currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; }
+            renderCalendar(currentCalYear, currentCalMonth);
+        };
+
+        document.getElementById('next-month-btn').onclick = () => {
+            currentCalMonth++;
+            if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
+            renderCalendar(currentCalYear, currentCalMonth);
+        };
+
+        document.getElementById('close-history-btn').onclick = () => document.getElementById('history-modal').style.display = "none";
         document.getElementById('final-finish-btn').onclick = () => location.reload();
         document.getElementById('close-edit-btn').onclick = () => document.getElementById('inline-edit-area').style.display = 'none';
         document.getElementById('modal-close-btn').onclick = () => { document.getElementById('finish-modal').style.display = "none"; document.getElementById('roulette-result-area').style.display = "none"; };
