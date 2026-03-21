@@ -63,7 +63,6 @@
 
         /* バッジ */
         .tag-badge { font-size: 0.65rem; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; display:inline-block; }
-        .bg-gym { background: #3b82f6; } .bg-home { background: #f59e0b; } .bg-both { background: #8b5cf6; } .bg-bw { background: #10b981; } .bg-yt { background: #ef4444; } .bg-cardio { background: #0ea5e9; }
 
         /* === 5. YouTubeサムネイル用スタイル === */
         .yt-thumbnail-wrapper { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: none; background: #000;}
@@ -333,10 +332,23 @@
 
     <script>
     window.onload = function() {
-        // ★ プッシュ通知の許可リクエスト（iOS Safari等はユーザー操作がないと弾かれる場合あり）
         try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); } catch(e) {}
 
+        const silentAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+        silentAudio.loop = true;
+
+        function startSilentAudio() {
+            try { silentAudio.play(); console.log("無音オーディオ再生開始"); } catch(e) {}
+        }
+
+        function stopSilentAudio() {
+            try { silentAudio.pause(); silentAudio.currentTime = 0; console.log("無音オーディオ停止"); } catch(e) {}
+        }
+
         const defaultBodyParts = [
+            { name: "ストレッチ(筋トレ前)", priority: 0, recoveryHours: 0, exercises: [
+                { name: "【3分間】筋トレ効果2倍！？筋トレ前にこれをやってください。【ストレッチ】", rest: 0, loc: "both", bw: true, cardio: false, youtubeUrl: "https://youtu.be/EYDQG0F3syM?si=lbp9bnKpaVIxVBjD" }
+            ]},
             { name: "脚", priority: 1, recoveryHours: 72, exercises: [
                 { name: "バーベルスクワット", rest: 180, loc: "gym", bw: false, cardio: false }, 
                 { name: "レッグプレス", rest: 180, loc: "gym", bw: false, cardio: false },
@@ -366,18 +378,27 @@
             { name: "腹筋", priority: 6, recoveryHours: 24, exercises: [
                 { name: "クランチ", rest: 60, loc: "both", bw: true, cardio: false }, 
                 { name: "プランク", rest: 60, loc: "both", bw: true, cardio: false },
-                { name: "3分間鬼の腹筋(動画)", rest: 60, loc: "home", bw: true, cardio: false, youtubeUrl: "https://www.youtube.com/watch?v=1we3XigEqkc" }
             ]},
             { name: "有酸素", priority: 7, recoveryHours: 24, exercises: [
                 { name: "ランニングマシン", rest: 0, loc: "gym", bw: false, cardio: true },
                 { name: "エアロバイク", rest: 0, loc: "gym", bw: false, cardio: true },
-                { name: "屋外ランニング", rest: 0, loc: "both", bw: false, cardio: true },
+                { name: "屋外ランニング", rest: 0, loc: "both", bw: false, cardio: true }
+            ]},
+            { name: "ストレッチ(筋トレ後)", priority: 8, recoveryHours: 0, exercises: [
+                { name: "【3分間】筋トレ効果2倍！？筋トレ後に一緒にやってみよう！【ストレッチ】", rest: 0, loc: "both", bw: true, cardio: false, youtubeUrl: "https://youtu.be/1reJ9w30lnU?si=ULgLthu8N5vpPYUE" }
             ]}
         ];
 
         let savedBodyParts = JSON.parse(localStorage.getItem('masterBodyParts'));
         let bodyParts;
+
         if (savedBodyParts && savedBodyParts.length > 0) {
+            // ★ スマホに保存されたデータの中で壊れたもの（undefined）があれば削除する安全装置
+            savedBodyParts = savedBodyParts.filter(p => p !== null && p !== undefined && p.name);
+
+            // 古い名前（"筋トレ前", "筋トレ後"）がもし残っていたら削除しておく（お掃除）
+            savedBodyParts = savedBodyParts.filter(p => p.name !== "筋トレ前" && p.name !== "筋トレ後");
+
             savedBodyParts.forEach(p => p.exercises.forEach(ex => { 
                 if(!ex.loc) ex.loc = "both"; 
                 if(ex.bw === undefined) ex.bw = false; 
@@ -385,7 +406,18 @@
                 if(!ex.rest) ex.rest = 60;
             }));
             bodyParts = savedBodyParts;
+            
             if (!bodyParts.some(p => p.name === "有酸素")) bodyParts.push(defaultBodyParts.find(p => p.name === "有酸素"));
+            
+            // ★ バグの原因だった部分の「名前」を正しく修正しました！
+            if (!bodyParts.some(p => p.name === "ストレッチ(筋トレ前)")) {
+                bodyParts.push(defaultBodyParts.find(p => p.name === "ストレッチ(筋トレ前)"));
+            }
+            if (!bodyParts.some(p => p.name === "ストレッチ(筋トレ後)")) {
+                bodyParts.push(defaultBodyParts.find(p => p.name === "ストレッチ(筋トレ後)"));
+            }
+            
+            bodyParts.sort((a, b) => a.priority - b.priority);
             localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
         } else {
             bodyParts = JSON.parse(JSON.stringify(defaultBodyParts));
@@ -450,7 +482,6 @@
         homeMemo.value = localStorage.getItem('homeMemo') || "";
         homeMemo.addEventListener('input', (e) => localStorage.setItem('homeMemo', e.target.value));
 
-        // ★ 日付を統一フォーマット（YYYY/M/D）に揃える便利関数
         function getFormatDateStr(dateObj) {
             return dateObj.getFullYear() + '/' + (dateObj.getMonth() + 1) + '/' + dateObj.getDate();
         }
@@ -753,6 +784,7 @@
         document.getElementById('video-complete-btn').onclick = () => {
             clearInterval(timerInterval); clearInterval(workoutInterval);
             saveLog(0, 1, 0, true, currentExerciseObj.cardio); 
+            stopSilentAudio();
             alert("動画トレーニングお疲れ様でした！");
             setNumber++; updateUI();
         };
@@ -829,6 +861,8 @@
         });
 
         function startRest() {
+            startSilentAudio();
+
             const restSeconds = Math.round(baseTime * rpeModifier);
             targetEndTime = Date.now() + (restSeconds * 1000);
             workoutStatus.innerText = rpeModifier >= 1.3 ? "DEEP REST" : "REST";
@@ -845,8 +879,9 @@
         
         function finishRest() { 
             clearInterval(timerInterval); 
+            stopSilentAudio();
+
             try { playAlarm(); } catch(e) {} 
-            // ★ プッシュ通知を送信する処理
             try { 
                 if ("Notification" in window && Notification.permission === "granted") { 
                     if (navigator.vibrate) navigator.vibrate([200, 100, 200]); 
@@ -929,9 +964,8 @@
             document.getElementById('review-modal').style.display = "flex";
         };
 
-        // ★ カレンダー描画機能
         let currentCalYear = new Date().getFullYear();
-        let currentCalMonth = new Date().getMonth(); // 0が1月, 11が12月
+        let currentCalMonth = new Date().getMonth(); 
 
         function renderCalendar(year, month) {
             const daysContainer = document.getElementById('calendar-days');
@@ -942,35 +976,28 @@
             detailsContainer.style.display = "none";
             monthYearText.innerText = `${year}年 ${month + 1}月`;
 
-            // その月の1日の曜日（0:日, 1:月...）と、その月の日数を取得
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            // 空白のマス（1日が始まる前の曜日分）
             for (let i = 0; i < firstDay; i++) {
                 const emptyDiv = document.createElement('div');
                 emptyDiv.className = "calendar-day empty";
                 daysContainer.appendChild(emptyDiv);
             }
 
-            // 日付のマスを作る
             for (let day = 1; day <= daysInMonth; day++) {
                 const dayDiv = document.createElement('div');
                 dayDiv.className = "calendar-day";
                 dayDiv.innerText = day;
 
-                // データベースにその日の記録があるかチェック (YYYY/M/D形式)
                 const dateKey = `${year}/${month + 1}/${day}`;
                 if (dailyLogsDB[dateKey] && dailyLogsDB[dateKey].sets.length > 0) {
-                    dayDiv.classList.add("has-log"); // 記録があれば青色にする
+                    dayDiv.classList.add("has-log"); 
                     
-                    // タップした時の処理
                     dayDiv.onclick = () => {
-                        // 選択された日付のスタイルを変える
                         document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
                         dayDiv.classList.add('selected');
                         
-                        // 詳細ログを下に表示する
                         const data = dailyLogsDB[dateKey];
                         let stats = [];
                         if (data.volume > 0) stats.push(`🏋️ ${data.volume.toLocaleString()}kg`);
