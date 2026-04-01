@@ -5,15 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AutoFit</title>
     <style>
-        /* === 1. アプリ全体の基本デザイン === */
+        /* === 1. アプリ全体の基本デザイン（黒背景×青主体 ダークモード） === */
         :root {
-            --bg: #f3f4f6; --card-white: #ffffff; --primary: #2563eb;
-            --green: #10b981; --red: #ef4444; --text: #1f2937;
-            --text-muted: #6b7280; --border: #e5e7eb;
+            --bg: #0f172a;             /* 全体の背景：深いネイビーブラック */
+            --card-bg: #1e293b;        /* カードの背景：少し浮き出るブルーグレー */
+            --primary: #3b82f6;        /* メインカラー：鮮やかなブルー */
+            --primary-dark: #2563eb;   /* 濃いブルー */
+            --green: #10b981;          /* 完了・準備OKの色 */
+            --red: #ef4444;            /* 限界・終了の色 */
+            --text: #f8fafc;           /* 基本の文字色：白に近いグレー */
+            --text-muted: #94a3b8;     /* 補助的な文字色：青みがかったグレー */
+            --border: #334155;         /* 枠線：目立たないブルーグレー */
+            --orange: #f59e0b;         /* ドロップセット用 */
+            --deep-red: #b91c1c;       /* レストポーズ用 */
         }
+
         body { background-color: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 0; }
         #app-container { max-width: 480px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
-        h1 { font-size: 1.2rem; text-align: center; color: var(--primary); margin: 10px 0 25px; font-weight: 800; }
+        h1 { font-size: 1.2rem; text-align: center; color: var(--primary); margin: 10px 0 25px; font-weight: 800; letter-spacing: 1px;}
 
         /* === 2. ガイド・モード切替・メモ === */
         .guide-card { margin-bottom: 20px; }
@@ -22,123 +31,146 @@
         .guide-content h4 { margin: 10px 0 5px 0; color: var(--text-muted); }
         .guide-content ul { margin: 0; padding-left: 20px; }
 
-        .mode-toggle-container { display: flex; gap: 10px; margin-bottom: 20px; background: #fff; padding: 5px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .mode-toggle-container { display: flex; gap: 10px; margin-bottom: 20px; background: var(--card-bg); padding: 5px; border-radius: 12px; border: 1px solid var(--border); }
         .mode-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: 0.2s; }
-        .mode-active { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(37,99,235,0.3); }
+        .mode-active { background: var(--primary); color: #fff; box-shadow: 0 2px 5px rgba(59,130,246,0.3); } 
         .mode-inactive { background: transparent; color: var(--text-muted); }
 
         .recommend-container { margin-bottom: 20px; animation: slideIn 0.4s ease-out; }
-        .recommend-btn { width: 100%; background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px dashed var(--primary); color: var(--primary); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+        .recommend-btn { width: 100%; background: rgba(59, 130, 246, 0.1); border: 2px dashed var(--primary); color: var(--primary); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
         @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* === 3. 部位カード（超回復バー付き） === */
-        .card { background: var(--card-white); border-radius: 16px; padding: 15px; margin-bottom: 12px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 12px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .part-card-wrapper { position: relative; }
-        .part-btn { width: 100%; text-align: left; cursor: pointer; border: 2px solid transparent; background: white; border-radius: 12px; padding: 10px;}
-        .part-btn.selected { border-color: var(--primary); background: #eff6ff; }
+        .part-btn { width: 100%; text-align: left; cursor: pointer; border: 2px solid transparent; background: var(--card-bg); color: var(--text); border-radius: 12px; padding: 10px;}
+        .part-btn.selected { border-color: var(--primary); background: rgba(59, 130, 246, 0.1); }
         .part-name { font-weight: bold; display: block; margin-bottom: 8px; }
-        .progress-bar { height: 4px; background: #eee; border-radius: 4px; overflow: hidden; }
-        .progress-fill { height: 100%; background: #fbbf24; }
-        .ready-fill { background: var(--green); }
+        .progress-bar { height: 4px; background: #334155; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--orange); } 
+        .ready-fill { background: var(--primary); } 
         .time-label { font-size: 0.65rem; color: var(--text-muted); display: block; margin-top: 4px; }
 
         /* === 4. 編集・管理画面 === */
-        .edit-icon-btn { position: absolute; top: -5px; right: -5px; background: white; border: 1px solid var(--border); border-radius: 50%; width: 26px; height: 26px; z-index: 10; cursor: pointer; }
-        .edit-card { border: 2px solid var(--primary); background: #fcfdfe; }
+        .edit-icon-btn { position: absolute; top: -5px; right: -5px; background: var(--card-bg); color: var(--text-muted); border: 1px solid var(--border); border-radius: 50%; width: 26px; height: 26px; z-index: 10; cursor: pointer; }
+        .edit-card { border: 2px solid var(--primary); background: #0f172a; }
         .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .edit-header h3 { margin: 0; font-size: 0.9rem; color: var(--primary); }
         .close-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
         
         .manage-list { list-style: none; padding: 0; margin: 10px 0; }
-        .manage-list li { display: flex; flex-direction: column; gap: 8px; padding: 15px; border-bottom: 1px solid #eee; background: #fff; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border);}
-        .del-btn { color: var(--red); border: 1px solid var(--red); background: #fee2e2; border-radius:4px; cursor: pointer; font-weight: bold; font-size: 0.8rem; padding: 4px 8px; margin-left:auto;}
+        .manage-list li { display: flex; flex-direction: column; gap: 8px; padding: 15px; border-bottom: 1px solid var(--border); background: var(--card-bg); border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border);}
+        .del-btn { color: #fca5a5; border: 1px solid #fca5a5; background: rgba(239, 68, 68, 0.1); border-radius:4px; cursor: pointer; font-weight: bold; font-size: 0.8rem; padding: 4px 8px; margin-left:auto;}
         
-        .add-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; background: #eff6ff; padding: 12px; border-radius: 8px; border: 1px dashed var(--primary); }
+        .add-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; background: rgba(59, 130, 246, 0.05); padding: 12px; border-radius: 8px; border: 1px dashed var(--primary); }
         .add-row-top { display: flex; gap: 5px; }
-        .add-row input[type="text"], .add-row input[type="number"], .add-row select { padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; }
+        .add-row input[type="text"], .add-row input[type="number"], .add-row select { padding: 8px; background: #0f172a; color: var(--text); border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; }
         
         input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type="number"] { -moz-appearance: textfield; }
 
-        /* バッジ */
-        .tag-badge { font-size: 0.65rem; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; display:inline-block; }
+        .tag-badge { font-size: 0.65rem; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 5px; display:inline-block; }
 
         /* === 5. YouTubeサムネイル用スタイル === */
-        .yt-thumbnail-wrapper { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: none; background: #000;}
-        .yt-thumbnail-wrapper img { width: 100%; display: block; opacity: 0.8; }
+        .yt-thumbnail-wrapper { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: none; background: #000;}
+        .yt-thumbnail-wrapper img { width: 100%; display: block; opacity: 0.7; }
         .yt-play-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .yt-play-btn { background: #ff0000; color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(255,0,0,0.4);}
+        .yt-play-btn { background: rgba(255,0,0,0.8); color: white; padding: 10px 20px; border-radius: 30px; font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
 
         /* === 6. トレーニング画面 === */
-        .exercise-main-card { background: var(--primary); color: white; text-align: center; }
-        .exercise-main-card h3 { font-size: 1.5rem; margin-bottom: 10px; }
+        .exercise-main-card { background: linear-gradient(145deg, #1e293b, #0f172a); border: 1px solid var(--border); color: var(--text); text-align: center; }
+        .exercise-main-card h3 { font-size: 1.5rem; margin-bottom: 5px; color: var(--primary); }
+        
+        /* ★ 新機能：1RM（推定MAX）表示用のバッジ */
+        .onerm-badge { display: inline-block; background: rgba(245, 158, 11, 0.2); color: var(--orange); font-size: 0.8rem; font-weight: bold; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--orange); margin-bottom: 15px; }
+
         .memo-area { margin-top: 10px; }
-        .memo-input { width: 100%; box-sizing: border-box; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.3); color: white; border-radius: 8px; padding: 10px; font-size: 0.85rem; min-height: 60px; resize: vertical; }
-        .memo-input::placeholder { color: rgba(255, 255, 255, 0.6); }
+        .memo-input { width: 100%; box-sizing: border-box; background: #0f172a; border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px; font-size: 0.85rem; min-height: 60px; resize: vertical; }
+        .memo-input::placeholder { color: var(--text-muted); }
 
-        #timer-display { font-size: 3.5rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; line-height: 1; margin: 10px 0; }
-        .status-badge { font-size: 0.7rem; font-weight: bold; padding: 4px 10px; border-radius: 6px; background: #eee; }
-        .status-active { background: #dcfce7; color: #15803d; }
-        .status-rest { background: #fee2e2; color: #b91c1c; }
+        #timer-display { font-size: 3.5rem; font-weight: 800; text-align: center; font-variant-numeric: tabular-nums; line-height: 1; margin: 10px 0; color: var(--primary); text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
+        .status-badge { font-size: 0.7rem; font-weight: bold; padding: 4px 10px; border-radius: 6px; background: #334155; color: var(--text-muted); }
+        .status-active { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid var(--primary);}
+        .status-rest { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid var(--red);}
+        .status-rest-pause { background: rgba(185, 28, 28, 0.3); color: #fca5a5; border: 1px solid var(--deep-red); }
 
-        .skip-rest-link { display: block; margin: 0 auto 15px; background: #f8fafc; border: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem; padding: 8px 16px; border-radius: 20px; cursor: pointer; text-align: center; }
+        .skip-rest-link { display: block; margin: 0 auto 15px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.8rem; padding: 8px 16px; border-radius: 20px; cursor: pointer; text-align: center; }
 
         .input-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 15px; }
-        input[type="number"] { font-size: 1.5rem; font-weight: bold; border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
+        input[type="number"] { font-size: 1.5rem; font-weight: bold; background: #0f172a; color: var(--primary); border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
 
-        .main-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
-        .btn-blue { background: var(--primary); color: white; }
-        .btn-green { background: var(--green); color: white; }
-        .btn-red { background: var(--red); color: white; }
+        .main-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 1rem; font-weight: bold; cursor: pointer; margin-bottom: 10px; color: #fff;}
+        .btn-blue { background: var(--primary); }
+        .btn-green { background: var(--green); }
+        .btn-red { background: var(--red); }
+        .btn-orange { background: var(--orange); }
+        .btn-deep-red { background: var(--deep-red); }
         .btn-youtube { background: #ef4444; color: white; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); } 
         .btn-blue-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); margin-top: 10px; }
-        .btn-white { background: #fff; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-white { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); }
 
-        .rpe-instruction { font-size: 0.85rem; color: var(--text); text-align: center; margin-bottom: 10px; background-color: #fef08a; padding: 8px; border-radius: 8px; }
+        .record-btn-group { display: flex; gap: 8px; margin-bottom: 10px; }
+        .record-btn-group .main-btn { flex: 1; padding: 12px 5px; font-size: 0.85rem; margin-bottom: 0; }
+
+        .rpe-instruction { font-size: 0.85rem; color: #fff; text-align: center; margin-bottom: 10px; background-color: var(--primary-dark); padding: 8px; border-radius: 8px; }
         .button-group { display: flex; gap: 8px; margin-top: 5px; }
-        .rpe-btn { flex: 1; padding: 12px 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; font-size: 0.9rem; font-weight: bold; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .rpe-btn { flex: 1; padding: 12px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); cursor: pointer; font-size: 0.9rem; font-weight: bold; color: var(--text); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
         #last-sets-list, #history-list { list-style: none; padding: 0; margin: 0; font-size: 0.85rem; text-align: left; }
-        #last-sets-list li { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px 0; }
+        #last-sets-list li { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding: 4px 0; color: var(--text-muted);}
 
-        .log-item { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); color: black;}
+        .log-item { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); color: var(--text);}
         .log-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .set-badge { background: var(--primary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
-        .del-log-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; opacity: 0.6; transition: 0.2s; }
-        .executing-badge { background: #fff; color: var(--primary); padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
-        .spin-btn-small { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .mini-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+        .set-badge { background: var(--border); color: var(--text); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+        .method-badge { font-size: 0.6rem; padding: 1px 4px; border-radius: 3px; color: white; font-weight: bold; }
+        .bg-drop { background: var(--orange); } .bg-rp { background: var(--deep-red); }
 
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-        .modal-content { background: #fff; padding: 30px; border-radius: 20px; width: 100%; text-align: center; max-height: 85vh; overflow-y: auto;}
+        .log-actions { display: flex; gap: 5px; }
+        .edit-log-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; opacity: 0.8; transition: 0.2s; }
+        .del-log-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; opacity: 0.6; transition: 0.2s; }
+        
+        .executing-badge { background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
+        .spin-btn-small { background: var(--primary); color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .mini-btn { background: var(--border); color: var(--text); border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; border-radius: 20px; width: 100%; text-align: center; max-height: 85vh; overflow-y: auto; color: var(--text);}
 
         .workflow-item { display: flex; flex-direction: column; align-items: center; }
-        .workflow-arrow { font-size: 1.5rem; color: var(--primary); margin: -5px 0 8px; font-weight: bold; opacity: 0.6; }
+        .workflow-arrow { font-size: 1.5rem; color: var(--border); margin: -5px 0 8px; font-weight: bold; opacity: 0.6; }
         .list-item-card { width: 100%; display: flex; justify-content: space-between; align-items: center; position: relative; padding: 12px 15px; box-sizing: border-box; }
         .part-order-badge { font-size: 0.6rem; background: var(--bg); color: var(--text-muted); padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-right: 10px; border: 1px solid var(--border); }
-        .part-name-display { flex: 1; font-weight: bold; font-size: 1rem; }
-        .completed-item { opacity: 0.6; background: #f8fafc !important; border-color: #cbd5e1 !important; }
+        .part-name-display { flex: 1; font-weight: bold; font-size: 1rem; color: var(--text);}
+        .completed-item { opacity: 0.4; background: var(--bg) !important; border-color: var(--border) !important; }
 
         .finish-nav { margin-top: 40px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 15px; border-top: 1px solid var(--border); }
-        .btn-gold { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-size: 1.1rem; padding: 18px; border-radius: 16px; border: none; }
-        .streak-badge { background: rgba(255, 193, 7, 0.2); color: #ff9800; font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; margin-top: 5px; font-weight: bold; border: 1px solid #ff9800; }
-        .home-memo-input { background: #f8fafc; border: 1px solid var(--border); color: var(--text); }
+        .btn-gold { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #fff; font-size: 1.1rem; padding: 18px; border-radius: 16px; border: none; font-weight: 800;}
+        .streak-badge { background: rgba(59, 130, 246, 0.1); color: var(--primary); font-size: 0.8rem; padding: 4px 12px; border-radius: 20px; margin-top: 5px; font-weight: bold; border: 1px solid var(--primary); }
+        .home-memo-input { background: var(--bg); border: 1px solid var(--border); color: var(--text); }
         
         /* === 7. カレンダー履歴用スタイル === */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; margin-bottom: 10px;}
         .calendar-header-day { font-weight: bold; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; }
-        .calendar-day { background: #fff; border-radius: 8px; padding: 10px 0; font-size: 0.9rem; cursor: pointer; border: 1px solid var(--border); transition: 0.2s; }
+        .calendar-day { background: var(--card-bg); border-radius: 8px; padding: 10px 0; font-size: 0.9rem; cursor: pointer; border: 1px solid var(--border); transition: 0.2s; color: var(--text);}
         .calendar-day.empty { background: transparent; border: none; cursor: default; }
-        .calendar-day.has-log { background: var(--primary); color: white; font-weight: bold; border: 2px solid #1e40af; box-shadow: 0 2px 4px rgba(37,99,235,0.3);}
-        .calendar-day.selected { transform: scale(1.1); box-shadow: 0 0 0 2px #f59e0b; border-color: #f59e0b; z-index: 10;}
-        .calendar-day:hover:not(.empty) { opacity: 0.8; }
+        .calendar-day.has-log { background: rgba(59, 130, 246, 0.2); color: var(--primary); font-weight: bold; border: 1px solid var(--primary);}
+        .calendar-day.selected { transform: scale(1.1); box-shadow: 0 0 0 2px var(--text); border-color: var(--text); z-index: 10;}
         
-        .history-date-card { background: #f8fafc; border: 1px solid var(--border); padding: 15px; border-radius: 12px; margin-top: 15px; text-align: left; }
-        .history-date-title { font-weight: bold; color: var(--primary); font-size: 1.1rem; margin-bottom: 8px; border-bottom: 2px solid var(--border); padding-bottom: 4px;}
-        .history-stats { font-size: 0.85rem; color: var(--text); margin-bottom: 10px; }
-        .history-list-mini { list-style: none; padding: 0; margin: 0; font-size: 0.8rem; color: var(--text-muted); }
-        .history-list-mini li { padding: 5px 0; border-bottom: 1px dashed #e5e7eb; display:flex; justify-content:space-between; align-items:center;}
+        .history-date-card { background: var(--bg); border: 1px solid var(--border); padding: 15px; border-radius: 12px; margin-top: 15px; text-align: left; }
+        .history-date-title { font-weight: bold; color: var(--primary); font-size: 1.1rem; margin-bottom: 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px;}
+        .history-stats { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
+        .history-list-mini { list-style: none; padding: 0; margin: 0; font-size: 0.8rem; color: var(--text); }
+        .history-list-mini li { padding: 5px 0; border-bottom: 1px dashed var(--border); display:flex; justify-content:space-between; align-items:center;}
+
+        /* ★ 新機能：部位別ボリュームのグラフ表示用スタイル */
+        .volume-chart-container { margin-top: 25px; padding-top: 15px; border-top: 2px dashed var(--border); text-align: left; }
+        .volume-chart-title { font-weight: bold; color: var(--primary); font-size: 1.1rem; margin-bottom: 15px; text-align: center; }
+        .chart-row { display: flex; align-items: center; margin-bottom: 10px; }
+        .chart-label { width: 60px; font-size: 0.8rem; color: var(--text-muted); font-weight: bold; }
+        .chart-bar-bg { flex: 1; background: var(--bg); height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); margin: 0 10px; }
+        .chart-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary-dark), var(--primary)); border-radius: 6px; transition: width 0.5s ease-out; }
+        .chart-value { width: 50px; font-size: 0.75rem; color: var(--text); text-align: right; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -165,14 +197,14 @@
                 </details>
             </div>
 
-            <button id="show-history-btn" class="main-btn btn-white">📅 過去のトレーニングカレンダー</button>
+            <button id="show-history-btn" class="main-btn btn-white">📅 過去のカレンダー＆分析</button>
 
             <div class="card home-memo-card">
                 <h3 style="font-size:0.9rem; color:var(--primary); margin:0 0 10px 0;">📝 全体メモ</h3>
                 <textarea id="home-memo" placeholder="目標、トレーニング全体のメモを残す..." class="memo-input home-memo-input"></textarea>
             </div>
 
-            <h2 style="font-size:1.1rem; text-align:center;">部位を選択 / 編集</h2>
+            <h2 style="font-size:1.1rem; text-align:center; color: var(--text);">部位を選択 / 編集</h2>
 
             <div id="recommend-area" class="recommend-container" style="display: none;">
                 <button id="select-ready-parts-btn" class="recommend-btn">✨ 超回復済みを一括選択！</button>
@@ -192,13 +224,13 @@
                         <input type="number" id="new-ex-rest" placeholder="秒" min="0" style="width:65px; text-align:center;">
                     </div>
                     <div style="display:flex; gap:10px; align-items:center; font-size:0.8rem; flex-wrap:wrap;">
-                        <select id="new-ex-loc" style="padding:5px; border-radius:5px; border:1px solid #ccc;">
-                            <option value="both">ジム/家 両方可</option>
+                        <select id="new-ex-loc" style="padding:5px; border-radius:5px; border:1px solid var(--border); background: var(--bg); color: var(--text);">
+                            <option value="both">共通</option>
                             <option value="gym">ジム専用</option>
                             <option value="home">家トレ専用</option>
                         </select>
-                        <label><input type="checkbox" id="new-ex-bw"> 自重(0kg)</label>
-                        <label><input type="checkbox" id="new-ex-cardio"> 有酸素(分)</label>
+                        <label><input type="checkbox" id="new-ex-bw"> 自重</label>
+                        <label><input type="checkbox" id="new-ex-cardio"> 有酸素</label>
                         <button id="add-exercise-btn" class="mini-btn" style="margin-left:auto;">追加</button>
                     </div>
                     <input type="text" id="new-ex-yt" placeholder="YouTube URL (任意)" style="font-size:0.75rem; width:100%;">
@@ -214,19 +246,20 @@
             
             <div id="roulette-result-area" style="display:none;">
                 <div class="card exercise-main-card">
-                    <div style="font-size:0.75rem; opacity:0.8;">NOW TRAINING</div>
+                    <div style="font-size:0.75rem; opacity:0.6;">NOW TRAINING</div>
                     <h3 id="result-exercise-name">---</h3>
+                    
+                    <div id="onerm-display" class="onerm-badge" style="display: none;">👑 推定MAX: -- kg</div>
                     
                     <a id="youtube-link" href="#" target="_blank" class="yt-thumbnail-wrapper">
                         <img id="youtube-thumb" src="" alt="YouTube Thumbnail">
                         <div class="yt-play-overlay">
                             <div class="yt-play-btn">▶ YouTubeで開く</div>
-                            <p style="font-size:0.7rem; color:#fff; margin-top:5px; text-shadow:0 1px 2px #000;">※別タブで開きます</p>
                         </div>
                     </a>
 
                     <div style="margin-bottom:15px;">
-                        <span style="font-size:0.85rem;">前回の記録</span>
+                        <span style="font-size:0.85rem; color: var(--text-muted);">前回の記録</span>
                         <ul id="last-sets-list"></ul>
                     </div>
                     <textarea id="exercise-memo" placeholder="フォームの注意点やメモを残す..." class="memo-input"></textarea>
@@ -235,32 +268,37 @@
                 <div class="card timer-card">
                     <div class="timer-header">
                         <div id="workout-status" class="status-badge">READY</div>
-                        <div id="set-counter">第 1 セット</div>
+                        <div id="set-counter" style="font-weight:bold; color:var(--text);">第 1 セット</div>
                     </div>
                     <div id="timer-display">00:00</div>
                     
                     <button id="skip-rest-btn" class="skip-rest-link" style="display: none;">休憩をスキップ ⏩</button>
 
                     <div class="action-area">
-                        <button id="video-complete-btn" class="main-btn btn-youtube" style="display: none;">▶ 動画と一緒に完了（自動記録）</button>
-                        <button id="set-start-btn" class="main-btn btn-green">セット開始！</button>
+                        <button id="video-complete-btn" class="main-btn btn-youtube" style="display: none;">▶ 動画と一緒に完了</button>
+                        <button id="set-start-btn" class="main-btn btn-green" style="color: #fff;">セット開始！</button>
                         
                         <div id="record-input-area" style="display: none;">
                             <div class="input-row">
                                 <div id="weight-reps-container" style="display:flex; align-items:center;">
-                                    <div id="weight-input-container" style="display:inline-block;">
+                                    <div id="weight-input-container">
                                         <input type="number" id="actual-weight" placeholder="0" step="0.5" min="0" style="width: 70px;">
-                                        <span style="font-size:1.5rem; margin:0 5px;">kg ×</span>
+                                        <span style="font-size:1.5rem; margin:0 5px; color:var(--text-muted);">kg ×</span>
                                     </div>
                                     <input type="number" id="actual-reps" placeholder="回数" min="0" style="width: 80px;">
-                                    <span id="reps-label" style="font-size:1.5rem; margin-left:5px; display:none;">回</span>
+                                    <span id="reps-label" style="font-size:1.5rem; margin-left:5px; color:var(--text-muted); display:none;">回</span>
                                 </div>
                                 <div id="cardio-input-container" style="display:none; align-items:center;">
                                     <input type="number" id="actual-minutes" placeholder="時間" min="0" style="width: 80px;">
-                                    <span style="font-size:1.5rem; margin-left:5px;">分</span>
+                                    <span style="font-size:1.5rem; margin-left:5px; color:var(--text-muted);">分</span>
                                 </div>
                             </div>
-                            <button id="set-end-record-btn" class="main-btn btn-red">記録して休憩</button>
+                            
+                            <div class="record-btn-group">
+                                <button id="record-drop-btn" class="main-btn btn-orange">⚡ ドロップ(重量↓)</button>
+                                <button id="record-rp-btn" class="main-btn btn-deep-red">🔥 15s休憩(RP)</button>
+                            </div>
+                            <button id="set-end-record-btn" class="main-btn btn-blue">記録して通常休憩</button>
                         </div>
                     </div>
 
@@ -279,41 +317,41 @@
                 </div>
 
                 <div class="multi-action-area">
-                    <button id="next-exercise-btn" class="main-btn" style="background:#f59e0b; color:white;">別の種目へ</button>
+                    <button id="next-exercise-btn" class="main-btn" style="background:var(--border); color:white;">別の種目へ</button>
                     <button id="complete-part-btn" class="main-btn btn-blue-outline">この部位を完了</button>
                 </div>
             </div>
 
             <div id="workout-finish-area" class="finish-nav">
                 <button id="all-complete-btn" class="main-btn btn-gold">本日のトレーニング終了</button>
-                <button id="back-btn" class="text-link-btn" style="background:none; border:none; color:gray; text-decoration:underline;">← 中断して戻る</button>
+                <button id="back-btn" class="text-link-btn" style="background:none; border:none; color:var(--text-muted); text-decoration:underline;">← 中断して戻る</button>
             </div>
         </div>
 
         <div id="finish-modal" class="modal" style="display: none;">
             <div class="modal-content">
-                <h2>部位完了！</h2>
+                <h2 style="color:var(--text);">部位完了！</h2>
                 <button id="modal-close-btn" class="main-btn btn-blue" style="margin-top: 15px;">次のSTEPへ</button>
             </div>
         </div>
 
         <div id="review-modal" class="modal" style="display: none;">
             <div class="modal-content">
-                <h2>🎉 今日の振り返り</h2>
-                <div id="review-summary" style="margin: 15px 0; font-size: 1.1rem; line-height: 1.5;"></div>
-                <div style="font-size: 0.8rem; color: gray; margin-bottom: 5px;">本日の全セットログ</div>
-                <ul id="review-log-list" class="manage-list" style="max-height: 250px; overflow-y: auto; text-align: left; background: #f8fafc; padding: 10px; border-radius: 8px;"></ul>
+                <h2 style="color:var(--text);">🎉 今日の振り返り</h2>
+                <div id="review-summary" style="margin: 15px 0; font-size: 1.1rem; line-height: 1.5; color:var(--text);"></div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">本日の全セットログ</div>
+                <ul id="review-log-list" class="manage-list" style="max-height: 250px; overflow-y: auto; text-align: left; background: var(--bg); padding: 10px; border-radius: 8px;"></ul>
                 <button id="final-finish-btn" class="main-btn btn-gold" style="margin-top: 20px;">お疲れ様でした！(終了)</button>
             </div>
         </div>
 
         <div id="history-modal" class="modal" style="display: none;">
-            <div class="modal-content" style="background:#f3f4f6; padding:20px;">
+            <div class="modal-content" style="background:var(--card-bg); padding:20px;">
                 <h2 style="color:var(--primary); margin-top:0;">📅 トレーニング記録</h2>
                 
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
                     <button id="prev-month-btn" class="mini-btn">◀ 先月</button>
-                    <span id="calendar-month-year" style="font-weight:bold; font-size:1.1rem;"></span>
+                    <span id="calendar-month-year" style="font-weight:bold; font-size:1.1rem; color:var(--text);"></span>
                     <button id="next-month-btn" class="mini-btn">次月 ▶</button>
                 </div>
                 
@@ -322,8 +360,12 @@
                     <div class="calendar-header-day">水</div><div class="calendar-header-day">木</div><div class="calendar-header-day">金</div><div class="calendar-header-day">土</div>
                 </div>
                 <div id="calendar-days" class="calendar-grid"></div>
-
                 <div id="calendar-log-details" style="display: none;"></div>
+
+                <div id="volume-analysis-area" class="volume-chart-container">
+                    <div class="volume-chart-title">📊 過去の部位別ボリューム</div>
+                    <div id="volume-chart-bars"></div>
+                </div>
 
                 <button id="close-history-btn" class="main-btn btn-blue" style="margin-top: 20px;">閉じる</button>
             </div>
@@ -332,91 +374,124 @@
 
     <script>
     window.onload = function() {
+        // --- 1. 基本設定と無音オーディオ（スリープ防止） ---
         try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); } catch(e) {}
-
+        
+        // 【初心者ポイント】画面がロックされたり裏に回ってもタイマーが止まらないように、無音を流し続けます。
         const silentAudio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
         silentAudio.loop = true;
 
         function startSilentAudio() {
-            try { silentAudio.play(); console.log("無音オーディオ再生開始"); } catch(e) {}
+            try { 
+                silentAudio.play(); 
+                console.log("無音オーディオ再生開始（バックグラウンドタイマー保護）"); 
+            } catch(e) {}
         }
 
         function stopSilentAudio() {
-            try { silentAudio.pause(); silentAudio.currentTime = 0; console.log("無音オーディオ停止"); } catch(e) {}
+            try { 
+                silentAudio.pause(); 
+                silentAudio.currentTime = 0; 
+                console.log("無音オーディオ停止"); 
+            } catch(e) {}
         }
 
+        // --- 2. 王道のメニュー構成（家トレ充実＆ジム専用追加、マシン表記なし） ---
         const defaultBodyParts = [
             { name: "ストレッチ(筋トレ前)", priority: 0, recoveryHours: 0, exercises: [
-                { name: "【3分間】筋トレ効果2倍！？筋トレ前にこれをやってください。【ストレッチ】", rest: 0, loc: "both", bw: true, cardio: false, youtubeUrl: "https://youtu.be/EYDQG0F3syM?si=lbp9bnKpaVIxVBjD" }
+                { name: "筋トレ前ストレッチ", rest: 0, loc: "both", bw: true, cardio: false, youtubeUrl: "https://youtu.be/EYDQG0F3syM?si=lbp9bnKpaVIxVBjD" }
             ]},
             { name: "脚", priority: 1, recoveryHours: 72, exercises: [
                 { name: "バーベルスクワット", rest: 180, loc: "gym", bw: false, cardio: false }, 
                 { name: "レッグプレス", rest: 180, loc: "gym", bw: false, cardio: false },
+                { name: "レッグエクステンション", rest: 120, loc: "gym", bw: false, cardio: false },
+                { name: "レッグカール", rest: 120, loc: "gym", bw: false, cardio: false },
                 { name: "自重スクワット", rest: 60, loc: "both", bw: true, cardio: false },
-                { name: "ブルガリアンスクワット", rest: 120, loc: "both", bw: true, cardio: false }
+                { name: "ブルガリアンスクワット", rest: 120, loc: "both", bw: true, cardio: false },
+                { name: "ランジ", rest: 90, loc: "home", bw: true, cardio: false }
             ]},
             { name: "背中", priority: 2, recoveryHours: 72, exercises: [
                 { name: "ラットプルダウン", rest: 120, loc: "gym", bw: false, cardio: false }, 
+                { name: "シーテッドローイング", rest: 120, loc: "gym", bw: false, cardio: false },
+                { name: "ケーブル・プルオーバー", rest: 90, loc: "gym", bw: false, cardio: false },
                 { name: "懸垂(チンニング)", rest: 180, loc: "both", bw: true, cardio: false },
-                { name: "バックエクステンション", rest: 90, loc: "home", bw: true, cardio: false }
+                { name: "バックエクステンション", rest: 90, loc: "home", bw: true, cardio: false },
+                { name: "リバーススノーエンジェル", rest: 60, loc: "home", bw: true, cardio: false }
             ]},
             { name: "胸", priority: 3, recoveryHours: 48, exercises: [
                 { name: "ベンチプレス", rest: 180, loc: "gym", bw: false, cardio: false }, 
                 { name: "チェストプレス", rest: 120, loc: "gym", bw: false, cardio: false },
-                { name: "腕立て伏せ", rest: 90, loc: "both", bw: true, cardio: false }
+                { name: "インクライン・プレス", rest: 180, loc: "gym", bw: false, cardio: false },
+                { name: "ペックフライ", rest: 90, loc: "gym", bw: false, cardio: false },
+                { name: "腕立て伏せ", rest: 90, loc: "both", bw: true, cardio: false },
+                { name: "ワイド・プッシュアップ", rest: 90, loc: "home", bw: true, cardio: false }
             ]},
             { name: "肩", priority: 4, recoveryHours: 48, exercises: [
                 { name: "ショルダープレス", rest: 120, loc: "gym", bw: false, cardio: false }, 
                 { name: "サイドレイズ", rest: 60, loc: "gym", bw: false, cardio: false },
-                { name: "パイクプッシュアップ", rest: 90, loc: "home", bw: true, cardio: false }
+                { name: "リアレイズ", rest: 60, loc: "gym", bw: false, cardio: false },
+                { name: "パイクプッシュアップ", rest: 90, loc: "home", bw: true, cardio: false },
+                { name: "ウォール・ウォーク", rest: 90, loc: "home", bw: true, cardio: false }
             ]},
             { name: "腕", priority: 5, recoveryHours: 24, exercises: [
                 { name: "アームカール", rest: 60, loc: "gym", bw: false, cardio: false },
-                { name: "フレンチプレス(自重)", rest: 60, loc: "both", bw: true, cardio: false },
+                { name: "ケーブルプッシュダウン", rest: 60, loc: "gym", bw: false, cardio: false },
+                { name: "ナロー・プッシュアップ", rest: 90, loc: "home", bw: true, cardio: false },
                 { name: "ディップス", rest: 120, loc: "both", bw: true, cardio: false }
             ]},
             { name: "腹筋", priority: 6, recoveryHours: 24, exercises: [
+                { name: "アブドミナル", rest: 60, loc: "gym", bw: false, cardio: false }, 
+                { name: "ケーブル・クランチ", rest: 60, loc: "gym", bw: false, cardio: false },
                 { name: "クランチ", rest: 60, loc: "both", bw: true, cardio: false }, 
                 { name: "プランク", rest: 60, loc: "both", bw: true, cardio: false },
+                { name: "レッグレイズ", rest: 60, loc: "home", bw: true, cardio: false },
+                { name: "3分間鬼の腹筋", rest: 60, loc: "home", bw: true, cardio: false, youtubeUrl: "https://www.youtube.com/watch?v=1we3XigEqkc" }
             ]},
             { name: "有酸素", priority: 7, recoveryHours: 24, exercises: [
                 { name: "ランニングマシン", rest: 0, loc: "gym", bw: false, cardio: true },
                 { name: "エアロバイク", rest: 0, loc: "gym", bw: false, cardio: true },
-                { name: "屋外ランニング", rest: 0, loc: "both", bw: false, cardio: true }
+                { name: "クロストレーナー", rest: 0, loc: "gym", bw: false, cardio: true },
+                { name: "屋外ランニング", rest: 0, loc: "both", bw: false, cardio: true },
+                { name: "バーピージャンプ", rest: 0, loc: "home", bw: true, cardio: true }
             ]},
             { name: "ストレッチ(筋トレ後)", priority: 8, recoveryHours: 0, exercises: [
-                { name: "【3分間】筋トレ効果2倍！？筋トレ後に一緒にやってみよう！【ストレッチ】", rest: 0, loc: "both", bw: true, cardio: false, youtubeUrl: "https://youtu.be/1reJ9w30lnU?si=ULgLthu8N5vpPYUE" }
+                { name: "筋トレ後ストレッチ", rest: 0, loc: "both", bw: true, cardio: false, youtubeUrl: "https://youtu.be/1reJ9w30lnU?si=ULgLthu8N5vpPYUE" }
             ]}
         ];
 
+        // --- 3. データの読み込みと安全装置 ---
+        // 【初心者ポイント】localStorage からデータを読み込みます。もし古いデータや壊れたデータがあれば掃除します。
         let savedBodyParts = JSON.parse(localStorage.getItem('masterBodyParts'));
         let bodyParts;
 
         if (savedBodyParts && savedBodyParts.length > 0) {
-            // ★ スマホに保存されたデータの中で壊れたもの（undefined）があれば削除する安全装置
+            // 壊れたデータ（undefined等）を除外
             savedBodyParts = savedBodyParts.filter(p => p !== null && p !== undefined && p.name);
 
-            // 古い名前（"筋トレ前", "筋トレ後"）がもし残っていたら削除しておく（お掃除）
-            savedBodyParts = savedBodyParts.filter(p => p.name !== "筋トレ前" && p.name !== "筋トレ後");
+            // 過去のテストデータ（モテ特化など）が残っていたら削除
+            const invalidNames = ["肩(モテ度MAX)", "背中(逆三角形)", "胸(厚み・谷間)", "腕(太さ)", "脚(土台)", "腹筋(シックスパック)", "有酸素(絞り)", "筋トレ前", "筋トレ後"];
+            savedBodyParts = savedBodyParts.filter(p => !invalidNames.includes(p.name));
 
-            savedBodyParts.forEach(p => p.exercises.forEach(ex => { 
-                if(!ex.loc) ex.loc = "both"; 
-                if(ex.bw === undefined) ex.bw = false; 
-                if(ex.cardio === undefined) ex.cardio = false;
-                if(!ex.rest) ex.rest = 60;
-            }));
+            // 各種目に足りないプロパティがあれば初期値を設定
+            savedBodyParts.forEach(p => {
+                p.exercises.forEach(ex => { 
+                    if(!ex.loc) ex.loc = "both"; 
+                    if(ex.bw === undefined) ex.bw = false; 
+                    if(ex.cardio === undefined) ex.cardio = false;
+                    if(!ex.rest) ex.rest = 60;
+                });
+            });
             bodyParts = savedBodyParts;
             
-            if (!bodyParts.some(p => p.name === "有酸素")) bodyParts.push(defaultBodyParts.find(p => p.name === "有酸素"));
+            // 必須の「王道の部位」が消えていれば復元する
+            const requiredParts = ["ストレッチ(筋トレ前)", "脚", "背中", "胸", "肩", "腕", "腹筋", "有酸素", "ストレッチ(筋トレ後)"];
+            requiredParts.forEach(partName => {
+                if (!bodyParts.some(p => p.name === partName)) {
+                    bodyParts.push(defaultBodyParts.find(p => p.name === partName));
+                }
+            });
             
-            // ★ バグの原因だった部分の「名前」を正しく修正しました！
-            if (!bodyParts.some(p => p.name === "ストレッチ(筋トレ前)")) {
-                bodyParts.push(defaultBodyParts.find(p => p.name === "ストレッチ(筋トレ前)"));
-            }
-            if (!bodyParts.some(p => p.name === "ストレッチ(筋トレ後)")) {
-                bodyParts.push(defaultBodyParts.find(p => p.name === "ストレッチ(筋トレ後)"));
-            }
-            
+            // 順番を優先順位通りに並び替える
             bodyParts.sort((a, b) => a.priority - b.priority);
             localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
         } else {
@@ -424,11 +499,15 @@
             localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
         }
 
+        // --- アプリで使う変数の準備 ---
         let recoveryData = JSON.parse(localStorage.getItem('recoveryData')) || {}; 
         let exerciseRecords = JSON.parse(localStorage.getItem('exerciseRecords')) || {}; 
         let streakData = JSON.parse(localStorage.getItem('streakData')) || { lastDate: null, count: 0 };
         let exerciseLastDate = JSON.parse(localStorage.getItem('exerciseLastDate')) || {};
         let dailyLogsDB = JSON.parse(localStorage.getItem('dailyLogsDB')) || {};
+        
+        // ★ 新機能：種目ごとのMAX重量（1RM）を保存するデータベースを準備
+        let oneRepMaxDB = JSON.parse(localStorage.getItem('oneRepMaxDB')) || {};
 
         let selectedParts = new Set();
         let currentWorkoutMode = 'gym'; 
@@ -453,31 +532,59 @@
         const workoutStatus = document.getElementById('workout-status');
         const timerDisplay = document.getElementById('timer-display');
 
+        // ジム/家 モード切り替えボタンの設定
         const btnGym = document.getElementById('mode-gym');
         const btnHome = document.getElementById('mode-home');
-        btnGym.onclick = () => { currentWorkoutMode = 'gym'; btnGym.className = "mode-btn mode-active"; btnHome.className = "mode-btn mode-inactive"; };
-        btnHome.onclick = () => { currentWorkoutMode = 'home'; btnHome.className = "mode-btn mode-active"; btnGym.className = "mode-btn mode-inactive"; };
+        btnGym.onclick = () => { 
+            currentWorkoutMode = 'gym'; 
+            btnGym.className = "mode-btn mode-active"; 
+            btnHome.className = "mode-btn mode-inactive"; 
+        };
+        btnHome.onclick = () => { 
+            currentWorkoutMode = 'home'; 
+            btnHome.className = "mode-btn mode-active"; 
+            btnGym.className = "mode-btn mode-inactive"; 
+        };
 
-        const preventMinus = (e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); };
-        weightInput.onkeydown = preventMinus; repsInput.onkeydown = preventMinus; minsInput.onkeydown = preventMinus;
+        // 数値入力欄での不要なキー入力を防ぐ
+        const preventMinus = (e) => { 
+            if (e.key === '-' || e.key === 'e') e.preventDefault(); 
+        };
+        weightInput.onkeydown = preventMinus; 
+        repsInput.onkeydown = preventMinus; 
+        minsInput.onkeydown = preventMinus;
 
+        // --- 4. コアロジック（UI制御・アラーム等） ---
         function playAlarm() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 if (!ctx) return;
                 const playBeep = (time, freq, dur) => {
-                    const osc = ctx.createOscillator(); const gain = ctx.createGain();
-                    osc.type = 'square'; osc.frequency.setValueAtTime(freq, time);
-                    gain.gain.setValueAtTime(0.8, time); gain.gain.exponentialRampToValueAtTime(0.01, time + dur);
-                    osc.connect(gain); gain.connect(ctx.destination);
-                    osc.start(time); osc.stop(time + dur);
+                    const osc = ctx.createOscillator(); 
+                    const gain = ctx.createGain();
+                    osc.type = 'square'; 
+                    osc.frequency.setValueAtTime(freq, time);
+                    gain.gain.setValueAtTime(0.8, time); 
+                    gain.gain.exponentialRampToValueAtTime(0.01, time + dur);
+                    osc.connect(gain); 
+                    gain.connect(ctx.destination);
+                    osc.start(time); 
+                    osc.stop(time + dur);
                 };
                 const now = ctx.currentTime;
-                playBeep(now, 1000, 0.1); playBeep(now + 0.2, 1000, 0.1); playBeep(now + 0.4, 1000, 0.1); playBeep(now + 0.6, 1200, 0.4);
+                playBeep(now, 1000, 0.1); 
+                playBeep(now + 0.2, 1000, 0.1); 
+                playBeep(now + 0.4, 1000, 0.1); 
+                playBeep(now + 0.6, 1200, 0.4);
             } catch(e) {}
         }
 
-        document.getElementById('exercise-memo').addEventListener('input', (e) => { if (currentExerciseObj) localStorage.setItem(`memo_${currentExerciseObj.name}`, e.target.value); });
+        // メモ機能の保存処理
+        document.getElementById('exercise-memo').addEventListener('input', (e) => { 
+            if (currentExerciseObj) {
+                localStorage.setItem(`memo_${currentExerciseObj.name}`, e.target.value); 
+            }
+        });
         const homeMemo = document.getElementById('home-memo');
         homeMemo.value = localStorage.getItem('homeMemo') || "";
         homeMemo.addEventListener('input', (e) => localStorage.setItem('homeMemo', e.target.value));
@@ -486,12 +593,15 @@
             return dateObj.getFullYear() + '/' + (dateObj.getMonth() + 1) + '/' + dateObj.getDate();
         }
 
+        // 連続継続日数の計算処理
         function updateStreak() {
             const todayStr = getFormatDateStr(new Date());
             if (streakData.lastDate && streakData.lastDate !== todayStr) {
                 const last = new Date(streakData.lastDate);
                 const today = new Date(todayStr);
-                if (Math.ceil(Math.abs(today - last) / 86400000) > 1) streakData.count = 0; 
+                if (Math.ceil(Math.abs(today - last) / 86400000) > 1) {
+                    streakData.count = 0; 
+                }
             }
             if (streakData.count > 0) {
                 document.getElementById('streak-info').style.display = 'inline-block';
@@ -499,40 +609,75 @@
             }
         }
 
+        // --- 初期画面のボタン（部位カード）を作成する処理 ---
         function initButtons() {
             const grid = document.getElementById('button-grid');
             grid.innerHTML = "";
             const now = Date.now();
             let readyPartsFound = [];
+            
             bodyParts.forEach(part => {
-                const wrapper = document.createElement('div'); wrapper.className = 'part-card-wrapper';
-                const btn = document.createElement('button'); btn.className = 'part-btn card';
+                const wrapper = document.createElement('div'); 
+                wrapper.className = 'part-card-wrapper';
+                const btn = document.createElement('button'); 
+                btn.className = 'part-btn card';
+                
                 const finishTime = recoveryData[part.name] || 0;
                 const remainingMs = finishTime - now;
                 const progress = Math.max(0, Math.min(100, (1 - (remainingMs / (part.recoveryHours * 3600000))) * 100));
-                let timeLabel = remainingMs <= 0 ? "READY" : `残り ${Math.floor(remainingMs/3600000)}h ${Math.floor((remainingMs%3600000)/60000)}m`;
-                if (remainingMs <= 0) readyPartsFound.push(part);
                 
-                btn.innerHTML = `<span class="part-name">${part.name}</span><div class="progress-bar"><div class="progress-fill ${remainingMs <= 0 ? 'ready-fill' : ''}" style="width: ${progress}%"></div></div><span class="time-label">${timeLabel}</span>`;
-                if(selectedParts.has(part)) btn.classList.add('selected');
+                let timeLabel = remainingMs <= 0 ? "READY" : `残り ${Math.floor(remainingMs/3600000)}h ${Math.floor((remainingMs%3600000)/60000)}m`;
+                if (remainingMs <= 0) {
+                    readyPartsFound.push(part);
+                }
+                
+                btn.innerHTML = `
+                    <span class="part-name">${part.name}</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${remainingMs <= 0 ? 'ready-fill' : ''}" style="width: ${progress}%"></div>
+                    </div>
+                    <span class="time-label">${timeLabel}</span>
+                `;
+                
+                if(selectedParts.has(part)) {
+                    btn.classList.add('selected');
+                }
+                
                 btn.onclick = () => {
                     btn.classList.toggle('selected');
-                    if (btn.classList.contains('selected')) selectedParts.add(part); else selectedParts.delete(part);
+                    if (btn.classList.contains('selected')) {
+                        selectedParts.add(part); 
+                    } else {
+                        selectedParts.delete(part);
+                    }
                 };
                 
-                const editBtn = document.createElement('button'); editBtn.className = 'edit-icon-btn'; editBtn.innerHTML = '⚙️';
-                editBtn.onclick = (e) => { e.stopPropagation(); openInlineEdit(part); };
-                wrapper.append(btn, editBtn); grid.appendChild(wrapper);
+                const editBtn = document.createElement('button'); 
+                editBtn.className = 'edit-icon-btn'; 
+                editBtn.innerHTML = '⚙️';
+                editBtn.onclick = (e) => { 
+                    e.stopPropagation(); 
+                    openInlineEdit(part); 
+                };
+                
+                wrapper.append(btn, editBtn); 
+                grid.appendChild(wrapper);
             });
+            
             document.getElementById('recommend-area').style.display = readyPartsFound.length > 0 ? 'block' : 'none';
         }
         
         document.getElementById('select-ready-parts-btn').onclick = () => {
             const now = Date.now();
-            bodyParts.forEach(p => { if((recoveryData[p.name] || 0) <= now) selectedParts.add(p); });
+            bodyParts.forEach(p => { 
+                if((recoveryData[p.name] || 0) <= now) {
+                    selectedParts.add(p); 
+                }
+            });
             initButtons();
         };
 
+        // --- 編集画面の処理 ---
         function openInlineEdit(part) {
             currentEditingPart = part;
             document.getElementById('edit-part-title').innerText = `${part.name}の管理`;
@@ -545,15 +690,14 @@
             list.innerHTML = "";
             currentEditingPart.exercises.forEach((ex, idx) => {
                 const li = document.createElement('li');
-                
                 li.innerHTML = `
                     <div style="display:flex; justify-content:space-between; width:100%;">
                         <input type="text" class="edit-name" value="${ex.name}" style="flex:1; font-weight:bold; border:1px solid transparent; background:transparent; font-size:0.9rem;" placeholder="種目名">
                         <button class="del-btn">削除</button>
                     </div>
                     <div style="display:flex; gap:10px; align-items:center; font-size:0.8rem; width:100%; flex-wrap:wrap;">
-                        休:<input type="number" class="edit-rest" value="${ex.rest}" style="width:55px; padding:4px; border:1px solid #ccc; border-radius:4px; text-align:center;">s
-                        <select class="edit-loc" style="padding:4px; border:1px solid #ccc; border-radius:4px;">
+                        休:<input type="number" class="edit-rest" value="${ex.rest}" style="width:55px; padding:4px; border:1px solid var(--border); border-radius:4px; text-align:center;">s
+                        <select class="edit-loc" style="padding:4px; border:1px solid var(--border); background:var(--bg); color:var(--text); border-radius:4px;">
                             <option value="both" ${ex.loc === 'both' ? 'selected' : ''}>共通</option>
                             <option value="gym" ${ex.loc === 'gym' ? 'selected' : ''}>ジム</option>
                             <option value="home" ${ex.loc === 'home' ? 'selected' : ''}>家</option>
@@ -561,7 +705,7 @@
                         <label><input type="checkbox" class="edit-bw" ${ex.bw ? 'checked' : ''}>自重</label>
                         <label><input type="checkbox" class="edit-cardio" ${ex.cardio ? 'checked' : ''}>有酸素</label>
                     </div>
-                    <input type="text" class="edit-yt" value="${ex.youtubeUrl || ''}" placeholder="YouTube URL (任意)" style="font-size:0.75rem; width:100%; padding:4px; border:1px solid #ccc; border-radius:4px;">
+                    <input type="text" class="edit-yt" value="${ex.youtubeUrl || ''}" placeholder="YouTube URL (任意)" style="font-size:0.75rem; width:100%; padding:4px; border:1px solid var(--border); border-radius:4px;">
                 `;
 
                 const updateData = () => {
@@ -586,7 +730,9 @@
                         currentEditingPart.exercises.splice(idx, 1);
                         localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
                         renderEditList();
-                    } else alert("最低1つの種目は残してください。");
+                    } else {
+                        alert("最低1つの種目は残してください。");
+                    }
                 };
                 list.appendChild(li);
             });
@@ -605,13 +751,18 @@
                 if (ytUrl) newEx.youtubeUrl = ytUrl; 
                 currentEditingPart.exercises.push(newEx);
                 
-                document.getElementById('new-ex-name').value = ""; document.getElementById('new-ex-rest').value = "";
-                document.getElementById('new-ex-yt').value = ""; document.getElementById('new-ex-bw').checked = false; document.getElementById('new-ex-cardio').checked = false;
+                document.getElementById('new-ex-name').value = ""; 
+                document.getElementById('new-ex-rest').value = "";
+                document.getElementById('new-ex-yt').value = ""; 
+                document.getElementById('new-ex-bw').checked = false; 
+                document.getElementById('new-ex-cardio').checked = false;
+                
                 localStorage.setItem('masterBodyParts', JSON.stringify(bodyParts));
                 renderEditList();
             }
         };
 
+        // --- ルーレット開始処理 ---
         document.getElementById('start-roulette').onclick = () => {
             if (selectedParts.size === 0) return alert("部位を選択してください");
             
@@ -627,16 +778,31 @@
 
             document.getElementById('selection-screen').style.display = 'none';
             document.getElementById('roulette-screen').style.display = 'block';
-            const sList = document.getElementById('selected-list'); sList.innerHTML = "";
+            const sList = document.getElementById('selected-list'); 
+            sList.innerHTML = "";
             
-            totalVolumeThisSession = 0; totalBwRepsThisSession = 0; totalVideoSessions = 0; totalCardioMinsThisSession = 0; allSessionSets = []; 
+            totalVolumeThisSession = 0; 
+            totalBwRepsThisSession = 0; 
+            totalVideoSessions = 0; 
+            totalCardioMinsThisSession = 0; 
+            allSessionSets = []; 
             
             Array.from(selectedParts).sort((a,b)=>a.priority-b.priority).forEach((part, index) => {
-                const div = document.createElement('div'); div.className = 'workflow-item'; div.id = `workflow-${part.name}`;
-                div.innerHTML = `<div class="list-item-card card"><div class="part-order-badge">STEP ${index + 1}</div><span class="part-name-display">${part.name}</span><button class="spin-btn-small">種目を決定</button></div>${index < selectedParts.size - 1 ? '<div class="workflow-arrow">↓</div>' : ''}`;
+                const div = document.createElement('div'); 
+                div.className = 'workflow-item'; 
+                div.id = `workflow-${part.name}`;
+                div.innerHTML = `
+                    <div class="list-item-card card">
+                        <div class="part-order-badge">STEP ${index + 1}</div>
+                        <span class="part-name-display">${part.name}</span>
+                        <button class="spin-btn-small">種目を決定</button>
+                    </div>
+                    ${index < selectedParts.size - 1 ? '<div class="workflow-arrow">↓</div>' : ''}
+                `;
                 div.querySelector('.spin-btn-small').onclick = (e) => {
                     document.querySelectorAll('.executing-badge').forEach(el => el.remove());
-                    currentProcessingPart = part; doneExercisesInCurrentPart = [];
+                    currentProcessingPart = part; 
+                    doneExercisesInCurrentPart = [];
                     runRoulette(part, e.target);
                 };
                 sList.appendChild(div);
@@ -644,7 +810,11 @@
         };
 
         function runRoulette(part, btn) {
-            if(btn) { btn.disabled = true; btn.closest('.list-item-card').insertAdjacentHTML('afterbegin', '<span class="executing-badge">NOW</span>'); btn.style.visibility = 'hidden'; }
+            if(btn) { 
+                btn.disabled = true; 
+                btn.closest('.list-item-card').insertAdjacentHTML('afterbegin', '<span class="executing-badge">NOW</span>'); 
+                btn.style.visibility = 'hidden'; 
+            }
             document.getElementById('roulette-result-area').style.display = 'block';
             
             const validExercisesForShuffle = part.exercises.filter(ex => ex.loc === currentWorkoutMode || ex.loc === 'both');
@@ -653,7 +823,10 @@
             const shuffleInterval = setInterval(() => {
                 document.getElementById('result-exercise-name').innerText = validExercisesForShuffle[Math.floor(Math.random() * validExercisesForShuffle.length)].name;
                 count++;
-                if (count > 15) { clearInterval(shuffleInterval); setExercise(part); }
+                if (count > 15) { 
+                    clearInterval(shuffleInterval); 
+                    setExercise(part); 
+                }
             }, 60);
         }
 
@@ -663,9 +836,12 @@
             return match ? match[1] : null;
         }
 
+        // --- ルーレット最終決定ロジック ---
         function setExercise(part) {
             let targetPool = part.exercises.filter(ex => !doneExercisesInCurrentPart.includes(ex.name) && (ex.loc === currentWorkoutMode || ex.loc === 'both'));
-            if (targetPool.length === 0) targetPool = part.exercises.filter(ex => ex.loc === currentWorkoutMode || ex.loc === 'both');
+            if (targetPool.length === 0) {
+                targetPool = part.exercises.filter(ex => ex.loc === currentWorkoutMode || ex.loc === 'both');
+            }
             
             const now = Date.now();
             let totalWeight = 0;
@@ -677,11 +853,29 @@
             });
 
             let r = Math.random() * totalWeight;
-            for (let ex of pool) { r -= ex.weight; if (r <= 0) { currentExerciseObj = ex; break; } }
+            for (let ex of pool) { 
+                r -= ex.weight; 
+                if (r <= 0) { 
+                    currentExerciseObj = ex; 
+                    break; 
+                } 
+            }
             
             document.getElementById('result-exercise-name').innerText = currentExerciseObj.name;
-            baseTime = currentExerciseObj.rest; currentExerciseSets = []; setNumber = 1;
+            baseTime = currentExerciseObj.rest; 
+            currentExerciseSets = []; 
+            setNumber = 1;
             document.getElementById('exercise-memo').value = localStorage.getItem(`memo_${currentExerciseObj.name}`) || "";
+
+            // ★ 新機能：1RM（推定MAX）を画面に表示する処理
+            // 【初心者ポイント】種目が決まった瞬間に、データベースからMAX重量を引っ張ってきて表示させます。
+            const onermDisplay = document.getElementById('onerm-display');
+            if (!currentExerciseObj.cardio && !currentExerciseObj.bw && oneRepMaxDB[currentExerciseObj.name]) {
+                onermDisplay.innerText = `👑 推定MAX: ${oneRepMaxDB[currentExerciseObj.name]} kg`;
+                onermDisplay.style.display = "inline-block";
+            } else {
+                onermDisplay.style.display = "none";
+            }
 
             const ytLink = document.getElementById('youtube-link');
             const ytThumb = document.getElementById('youtube-thumb');
@@ -723,12 +917,17 @@
             hList.innerHTML = records.length ? "" : "<li>記録なし</li>";
             records.forEach((rec, idx) => {
                 let text = "";
-                if (rec.isCardio) text = `${rec.mins} 分`;
-                else if (rec.weight === 0) text = `自重 × ${rec.reps} 回`;
-                else text = `${rec.weight}kg × ${rec.reps}回`;
+                if (rec.isCardio) {
+                    text = `${rec.mins} 分`;
+                } else if (rec.weight === 0) {
+                    text = `自重 × ${rec.reps} 回`;
+                } else {
+                    text = `${rec.weight}kg × ${rec.reps}回`;
+                }
                 hList.insertAdjacentHTML('beforeend', `<li><span>Set ${idx+1}</span><strong>${text}</strong></li>`);
             });
             
+            // 前回入力値の自動補完
             if (records.length > 0) {
                 const last = records[records.length - 1];
                 if (currentExerciseObj.cardio) {
@@ -737,15 +936,21 @@
                     weightInput.value = last.weight === 0 ? "" : last.weight;
                     repsInput.value = last.reps;
                 }
-            } else { weightInput.value = ""; repsInput.value = ""; minsInput.value = ""; }
+            } else { 
+                weightInput.value = ""; 
+                repsInput.value = ""; 
+                minsInput.value = ""; 
+            }
             
             updateUI();
             document.getElementById('roulette-result-area').scrollIntoView({ behavior: 'smooth' });
         }
 
+        // --- タイマーとセット記録の処理 ---
         document.getElementById('set-start-btn').onclick = () => {
             try {
-                clearInterval(timerInterval); clearInterval(workoutInterval);
+                clearInterval(timerInterval); 
+                clearInterval(workoutInterval);
                 document.getElementById('set-start-btn').style.display = "none";
                 document.getElementById('video-complete-btn').style.display = "none"; 
                 
@@ -757,6 +962,7 @@
                     const s = Math.floor((Date.now() - startTime) / 1000);
                     timerDisplay.innerText = `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
                 }, 1000);
+                
                 document.getElementById('record-input-area').style.display = "block";
                 
             } catch(e) {
@@ -765,6 +971,68 @@
             }
         };
 
+        // ★ 新機能：1RM（推定MAX）を計算する関数
+        // 【初心者ポイント】Epleyの公式「重量 × (1 + 回数 / 30)」を使います。スポーツ科学の基本です！
+        function calculate1RM(weight, reps) {
+            if (weight <= 0 || reps <= 0) return 0;
+            // 計算結果を「2.5kg刻み」などの細かい数字ではなく、分かりやすく「整数」に丸めます
+            return Math.round(weight * (1 + reps / 30));
+        }
+
+        // 記録を保存する共通関数
+        function saveLog(weight, reps, mins, isVideoMode, isCardioMode, method) {
+            const setLog = { 
+                partName: currentProcessingPart.name, 
+                exName: currentExerciseObj.name, 
+                weight: weight, 
+                reps: reps, 
+                mins: mins, 
+                method: method, 
+                setNum: setNumber, 
+                id: Date.now(), 
+                isVideo: isVideoMode, 
+                isCardio: isCardioMode 
+            };
+            
+            currentExerciseSets.push(setLog); 
+            allSessionSets.push(setLog); 
+            
+            if (isVideoMode) {
+                totalVideoSessions++;
+            } else if (isCardioMode) {
+                totalCardioMinsThisSession += mins;
+            } else if (weight === 0) {
+                totalBwRepsThisSession += reps;
+            } else {
+                totalVolumeThisSession += (weight * reps);
+                
+                // ★ 新機能：1RM（推定MAX）の更新処理
+                // 【初心者ポイント】ウェイトを使った種目の場合、ここでMAX重量を計算し、過去の自分を超えていれば記録を更新します
+                const estimated1RM = calculate1RM(weight, reps);
+                const currentMax = oneRepMaxDB[currentExerciseObj.name] || 0;
+                
+                if (estimated1RM > currentMax) {
+                    oneRepMaxDB[currentExerciseObj.name] = estimated1RM;
+                    localStorage.setItem('oneRepMaxDB', JSON.stringify(oneRepMaxDB));
+                    
+                    // 画面上のバッジも即座に更新します
+                    const onermDisplay = document.getElementById('onerm-display');
+                    onermDisplay.innerText = `👑 新記録！推定MAX: ${estimated1RM} kg`;
+                    onermDisplay.style.display = "inline-block";
+                    // 新記録時は少し目立つように色を変える演出
+                    onermDisplay.style.background = "rgba(16, 185, 129, 0.2)";
+                    onermDisplay.style.color = "var(--green)";
+                    onermDisplay.style.borderColor = "var(--green)";
+                }
+            }
+
+            exerciseLastDate[currentExerciseObj.name] = Date.now();
+            localStorage.setItem('exerciseLastDate', JSON.stringify(exerciseLastDate));
+            
+            renderSessionHistory();
+        }
+
+        // ① 通常休憩ボタン
         document.getElementById('set-end-record-btn').onclick = () => {
             clearInterval(workoutInterval);
             let weight = 0, reps = 0, mins = 0;
@@ -776,70 +1044,125 @@
                 reps = Math.max(0, parseInt(repsInput.value) || 0);
             }
             
-            saveLog(weight, reps, mins, false, currentExerciseObj.cardio);
+            saveLog(weight, reps, mins, false, currentExerciseObj.cardio, null);
             document.getElementById('record-input-area').style.display = "none";
-            document.getElementById('rpe-selection-area').style.display = "block";
+            document.getElementById('rpe-selection-area').style.display = "block"; 
+        };
+
+        // ② ドロップセットボタン
+        document.getElementById('record-drop-btn').onclick = () => {
+            clearInterval(workoutInterval);
+            let weight = 0, reps = 0;
+            if (!currentExerciseObj.cardio) {
+                weight = currentExerciseObj.bw ? 0 : (weightInput.value.trim() === "" ? 0 : Math.max(0, parseFloat(weightInput.value)));
+                reps = Math.max(0, parseInt(repsInput.value) || 0);
+            }
+            
+            saveLog(weight, reps, 0, false, currentExerciseObj.cardio, 'Drop');
+            
+            // 重量20%減（0.8倍）、0.5kg単位
+            let dropWeight = Math.max(0, Math.round((weight * 0.8) * 2) / 2);
+            weightInput.value = dropWeight;
+            
+            setNumber++;
+            document.getElementById('set-counter').innerText = `第 ${setNumber} セット`;
+        };
+
+        // ③ レストポーズボタン
+        document.getElementById('record-rp-btn').onclick = () => {
+            clearInterval(workoutInterval);
+            let weight = 0, reps = 0;
+            if (!currentExerciseObj.cardio) {
+                weight = currentExerciseObj.bw ? 0 : (weightInput.value.trim() === "" ? 0 : Math.max(0, parseFloat(weightInput.value)));
+                reps = Math.max(0, parseInt(repsInput.value) || 0);
+            }
+            
+            saveLog(weight, reps, 0, false, currentExerciseObj.cardio, 'RP');
+            document.getElementById('record-input-area').style.display = "none";
+            
+            startSilentAudio();
+            targetEndTime = Date.now() + 15000;
+            workoutStatus.innerText = "REST PAUSE";
+            workoutStatus.className = "status-badge status-rest-pause";
+            
+            timerInterval = setInterval(() => {
+                const left = Math.ceil((targetEndTime - Date.now()) / 1000);
+                if (left <= 0) { 
+                    clearInterval(timerInterval); 
+                    playAlarm(); 
+                    setNumber++;
+                    updateUI(); 
+                } else {
+                    timerDisplay.innerText = `00:${left.toString().padStart(2,'0')}`;
+                }
+            }, 1000);
         };
 
         document.getElementById('video-complete-btn').onclick = () => {
-            clearInterval(timerInterval); clearInterval(workoutInterval);
-            saveLog(0, 1, 0, true, currentExerciseObj.cardio); 
+            clearInterval(timerInterval); 
+            clearInterval(workoutInterval);
+            saveLog(0, 1, 0, true, currentExerciseObj.cardio, null); 
             stopSilentAudio();
             alert("動画トレーニングお疲れ様でした！");
-            setNumber++; updateUI();
+            setNumber++; 
+            updateUI();
         };
 
-        function saveLog(weight, reps, mins, isVideoMode, isCardioMode) {
-            const setLog = { partName: currentProcessingPart.name, exName: currentExerciseObj.name, weight, reps, mins, setNum: currentExerciseSets.length + 1, id: Date.now(), isVideo: isVideoMode, isCardio: isCardioMode };
-            currentExerciseSets.push(setLog); allSessionSets.push(setLog); 
-            
-            if (isVideoMode) {
-                totalVideoSessions++;
-            } else if (isCardioMode) {
-                totalCardioMinsThisSession += mins;
-            } else if (weight === 0) {
-                totalBwRepsThisSession += reps;
-            } else {
-                totalVolumeThisSession += (weight * reps);
+        // 履歴の編集処理
+        window.editLog = function(logId) {
+            const log = allSessionSets.find(s => s.id === logId);
+            if(!log) return;
+            if(log.mins > 0 || log.weight === 0) {
+                alert("自重や有酸素の修正は、一度削除(🗑️)してから再入力してください。");
+                return;
             }
-
-            exerciseLastDate[currentExerciseObj.name] = Date.now();
-            localStorage.setItem('exerciseLastDate', JSON.stringify(exerciseLastDate));
-            renderHistoryList();
-            document.getElementById('session-history').style.display = "block";
-        }
-
-        window.deleteLog = function(logId) {
-            if(!confirm("この記録を削除しますか？")) return;
-            const logToDelete = allSessionSets.find(s => s.id === logId);
-            if(!logToDelete) return;
             
-            if (logToDelete.isVideo) {
-                totalVideoSessions--;
-            } else if (logToDelete.isCardio) {
-                totalCardioMinsThisSession -= logToDelete.mins;
-            } else if (logToDelete.weight === 0) {
-                totalBwRepsThisSession -= logToDelete.reps;
-            } else {
-                totalVolumeThisSession -= (logToDelete.weight * logToDelete.reps);
-            }
+            let newWeightStr = prompt(`Set ${log.setNum} の重量(kg)を修正:`, log.weight);
+            if(newWeightStr === null) return; 
+            let newRepsStr = prompt(`Set ${log.setNum} の回数を修正:`, log.reps);
+            if(newRepsStr === null) return;
 
-            allSessionSets = allSessionSets.filter(s => s.id !== logId);
-            currentExerciseSets = currentExerciseSets.filter(s => s.id !== logId);
-            if (currentExerciseSets.length > 0) {
+            let newW = parseFloat(newWeightStr) || 0;
+            let newR = parseInt(newRepsStr) || 0;
+
+            totalVolumeThisSession -= (log.weight * log.reps);
+            totalVolumeThisSession += (newW * newR);
+
+            log.weight = newW;
+            log.reps = newR;
+            
+            const recordLog = currentExerciseSets.find(s => s.id === logId);
+            if(recordLog) {
+                recordLog.weight = newW;
+                recordLog.reps = newR;
                 exerciseRecords[currentExerciseObj.name] = currentExerciseSets.map(s => ({weight: s.weight, reps: s.reps, mins: s.mins, isCardio: s.isCardio}));
-            } else delete exerciseRecords[currentExerciseObj.name];
+                localStorage.setItem('exerciseRecords', JSON.stringify(exerciseRecords));
+            }
             
-            localStorage.setItem('exerciseRecords', JSON.stringify(exerciseRecords));
-            renderHistoryList();
-            if(allSessionSets.length === 0) document.getElementById('session-history').style.display = "none";
+            // 【初心者ポイント】もし後から数字を修正して、それが「1RMの新記録」だった場合も、しっかり検知してデータベースを更新します。
+            const updated1RM = calculate1RM(newW, newR);
+            if (updated1RM > (oneRepMaxDB[currentExerciseObj.name] || 0)) {
+                oneRepMaxDB[currentExerciseObj.name] = updated1RM;
+                localStorage.setItem('oneRepMaxDB', JSON.stringify(oneRepMaxDB));
+                
+                const onermDisplay = document.getElementById('onerm-display');
+                onermDisplay.innerText = `👑 新記録！推定MAX: ${updated1RM} kg`;
+                onermDisplay.style.display = "inline-block";
+                onermDisplay.style.background = "rgba(16, 185, 129, 0.2)";
+                onermDisplay.style.color = "var(--green)";
+                onermDisplay.style.borderColor = "var(--green)";
+            }
+            
+            renderSessionHistory();
         };
 
-        function renderHistoryList() {
+        // 履歴の描画処理
+        function renderSessionHistory() {
             const list = document.getElementById('history-list');
             list.innerHTML = "";
             allSessionSets.forEach(set => {
-                const li = document.createElement('li'); li.className = "log-item";
+                const li = document.createElement('li'); 
+                li.className = "log-item";
                 
                 let displayTxt = "";
                 if (set.isVideo) displayTxt = "完了(動画)";
@@ -847,11 +1170,53 @@
                 else if (set.weight === 0) displayTxt = `自重 × ${set.reps}回`;
                 else displayTxt = `${set.weight}kg × ${set.reps}回`;
 
-                li.innerHTML = `<div class="log-info"><span class="set-badge">Set ${set.setNum}</span><span>${set.partName}：${set.exName}</span><strong style="margin-left:10px;">${displayTxt}</strong></div><button class="del-log-btn" onclick="deleteLog(${set.id})">🗑️</button>`;
+                let methodBadgeHtml = "";
+                if (set.method === 'Drop') methodBadgeHtml = '<span class="method-badge bg-drop">Drop</span>';
+                if (set.method === 'RP') methodBadgeHtml = '<span class="method-badge bg-rp">RP</span>';
+
+                li.innerHTML = `
+                    <div class="log-info">
+                        <span class="set-badge">Set ${set.setNum}</span>
+                        ${methodBadgeHtml}
+                        <span>${set.partName}：${set.exName}</span>
+                        <strong style="margin-left:10px;">${displayTxt}</strong>
+                    </div>
+                    <div class="log-actions">
+                        <button class="edit-log-btn" onclick="editLog(${set.id})">✏️</button>
+                        <button class="del-log-btn" onclick="deleteLog(${set.id})">🗑️</button>
+                    </div>
+                `;
                 list.appendChild(li);
             });
+            document.getElementById('session-history').style.display = "block";
         }
 
+        // ログ削除機能
+        window.deleteLog = function(logId) {
+            if(!confirm("この記録を削除しますか？")) return;
+            const logToDelete = allSessionSets.find(s => s.id === logId);
+            if(!logToDelete) return;
+            
+            if (logToDelete.isVideo) totalVideoSessions--;
+            else if (logToDelete.isCardio) totalCardioMinsThisSession -= logToDelete.mins;
+            else if (logToDelete.weight === 0) totalBwRepsThisSession -= logToDelete.reps;
+            else totalVolumeThisSession -= (logToDelete.weight * logToDelete.reps);
+
+            allSessionSets = allSessionSets.filter(s => s.id !== logId);
+            currentExerciseSets = currentExerciseSets.filter(s => s.id !== logId);
+            
+            if (currentExerciseSets.length > 0) {
+                exerciseRecords[currentExerciseObj.name] = currentExerciseSets.map(s => ({weight: s.weight, reps: s.reps, mins: s.mins, isCardio: s.isCardio}));
+            } else {
+                delete exerciseRecords[currentExerciseObj.name];
+            }
+            
+            localStorage.setItem('exerciseRecords', JSON.stringify(exerciseRecords));
+            renderSessionHistory();
+            if(allSessionSets.length === 0) document.getElementById('session-history').style.display = "none";
+        };
+
+        // 通常休憩タイマー処理
         document.querySelectorAll('.rpe-btn').forEach(btn => {
             btn.onclick = (e) => {
                 rpeModifier = parseFloat(e.target.dataset.mod);
@@ -865,15 +1230,20 @@
 
             const restSeconds = Math.round(baseTime * rpeModifier);
             targetEndTime = Date.now() + (restSeconds * 1000);
+            
             workoutStatus.innerText = rpeModifier >= 1.3 ? "DEEP REST" : "REST";
             workoutStatus.className = "status-badge status-rest";
-            if (rpeModifier >= 1.3) workoutStatus.style.backgroundColor = "#ff4444";
+            if (rpeModifier >= 1.3) workoutStatus.style.backgroundColor = "#ef4444";
             document.getElementById('skip-rest-btn').style.display = "block";
             
             timerInterval = setInterval(() => {
                 const left = Math.ceil((targetEndTime - Date.now()) / 1000);
-                if (left <= 0) { timerDisplay.innerText = "00:00"; finishRest(); }
-                else timerDisplay.innerText = `${Math.floor(left/60).toString().padStart(2,'0')}:${(left%60).toString().padStart(2,'0')}`;
+                if (left <= 0) { 
+                    timerDisplay.innerText = "00:00"; 
+                    finishRest(); 
+                } else {
+                    timerDisplay.innerText = `${Math.floor(left/60).toString().padStart(2,'0')}:${(left%60).toString().padStart(2,'0')}`;
+                }
             }, 1000);
         }
         
@@ -888,7 +1258,9 @@
                     new Notification("⏳ 休憩終了！", { body: "次のセットへ💪", requireInteraction: true }); 
                 } 
             } catch(e) {}
-            setNumber++; updateUI(); 
+            
+            setNumber++; 
+            updateUI(); 
         }
         
         document.getElementById('skip-rest-btn').onclick = () => finishRest();
@@ -896,21 +1268,31 @@
         function updateUI() {
             document.getElementById('set-counter').innerText = `第 ${setNumber} セット`;
             document.getElementById('set-start-btn').style.display = "block";
-            if(getYouTubeId(currentExerciseObj?.youtubeUrl)) document.getElementById('video-complete-btn').style.display = "block";
+            
+            if(getYouTubeId(currentExerciseObj?.youtubeUrl)) {
+                document.getElementById('video-complete-btn').style.display = "block";
+            }
+            
             document.getElementById('skip-rest-btn').style.display = "none";
             document.getElementById('record-input-area').style.display = "none";
-            workoutStatus.innerText = "READY"; workoutStatus.className = "status-badge"; workoutStatus.style.backgroundColor = ""; 
+            
+            workoutStatus.innerText = "READY"; 
+            workoutStatus.className = "status-badge"; 
+            workoutStatus.style.backgroundColor = ""; 
             timerDisplay.innerText = "00:00";
         }
 
         document.getElementById('next-exercise-btn').onclick = () => {
-            saveCurrentExerciseData(); doneExercisesInCurrentPart.push(currentExerciseObj.name); runRoulette(currentProcessingPart, null);
+            saveCurrentExerciseData(); 
+            doneExercisesInCurrentPart.push(currentExerciseObj.name); 
+            runRoulette(currentProcessingPart, null);
         };
 
         document.getElementById('complete-part-btn').onclick = () => {
             saveCurrentExerciseData();
             recoveryData[currentProcessingPart.name] = Date.now() + (currentProcessingPart.recoveryHours * 3600000);
             localStorage.setItem('recoveryData', JSON.stringify(recoveryData));
+            
             document.getElementById(`workflow-${currentProcessingPart.name}`).querySelector('.list-item-card').classList.add('completed-item');
             document.getElementById('finish-modal').style.display = "flex";
         };
@@ -922,6 +1304,7 @@
             }
         }
 
+        // --- 6. 終了処理とカレンダー記録 ---
         document.getElementById('all-complete-btn').onclick = () => {
             if (currentProcessingPart && allSessionSets.some(s => s.partName === currentProcessingPart.name)) {
                 saveCurrentExerciseData();
@@ -930,7 +1313,12 @@
             }
 
             const todayStr = getFormatDateStr(new Date());
-            if (streakData.lastDate !== todayStr) { streakData.count++; streakData.lastDate = todayStr; localStorage.setItem('streakData', JSON.stringify(streakData)); }
+            
+            if (streakData.lastDate !== todayStr) { 
+                streakData.count++; 
+                streakData.lastDate = todayStr; 
+                localStorage.setItem('streakData', JSON.stringify(streakData)); 
+            }
             
             if (!dailyLogsDB[todayStr]) {
                 dailyLogsDB[todayStr] = { volume: 0, bwReps: 0, videoSessions: 0, cardioMins: 0, sets: [] };
@@ -951,19 +1339,29 @@
 
             document.getElementById('review-summary').innerHTML = summaryText.join('<br>');
             
-            const rList = document.getElementById('review-log-list'); rList.innerHTML = "";
-            if (allSessionSets.length === 0) rList.innerHTML = "<li>記録なし</li>";
-            else allSessionSets.forEach(set => {
-                let txt = "";
-                if (set.isVideo) txt = "完了(動画)";
-                else if (set.isCardio) txt = `${set.mins} 分`;
-                else if (set.weight === 0) txt = `自重 × ${set.reps}回`;
-                else txt = `${set.weight}kg × ${set.reps}回`;
-                rList.insertAdjacentHTML('beforeend', `<li style="border-bottom: 1px solid #ccc; padding: 5px 0;"><strong>${set.partName} - ${set.exName}</strong><br>Set ${set.setNum}: ${txt}</li>`);
-            });
+            const rList = document.getElementById('review-log-list'); 
+            rList.innerHTML = "";
+            if (allSessionSets.length === 0) {
+                rList.innerHTML = "<li>記録なし</li>";
+            } else {
+                allSessionSets.forEach(set => {
+                    let txt = "";
+                    if (set.isVideo) txt = "完了(動画)";
+                    else if (set.isCardio) txt = `${set.mins} 分`;
+                    else if (set.weight === 0) txt = `自重 × ${set.reps}回`;
+                    else txt = `${set.weight}kg × ${set.reps}回`;
+                    
+                    let methodBadgeHtml = "";
+                    if (set.method === 'Drop') methodBadgeHtml = '<span class="method-badge bg-drop">Drop</span>';
+                    if (set.method === 'RP') methodBadgeHtml = '<span class="method-badge bg-rp">RP</span>';
+
+                    rList.insertAdjacentHTML('beforeend', `<li style="border-bottom: 1px solid var(--border); padding: 5px 0;"><strong>${set.partName} - ${set.exName}</strong> ${methodBadgeHtml}<br>Set ${set.setNum}: ${txt}</li>`);
+                });
+            }
             document.getElementById('review-modal').style.display = "flex";
         };
 
+        // --- 7. ★新機能：カレンダー＆部位別ボリューム分析 ---
         let currentCalYear = new Date().getFullYear();
         let currentCalMonth = new Date().getMonth(); 
 
@@ -991,6 +1389,7 @@
                 dayDiv.innerText = day;
 
                 const dateKey = `${year}/${month + 1}/${day}`;
+                
                 if (dailyLogsDB[dateKey] && dailyLogsDB[dateKey].sets.length > 0) {
                     dayDiv.classList.add("has-log"); 
                     
@@ -1007,7 +1406,8 @@
                         
                         let setsHtml = data.sets.map(s => {
                             let txt = s.isVideo ? "動画完了" : (s.isCardio ? `${s.mins}分` : (s.weight === 0 ? `自重×${s.reps}` : `${s.weight}kg×${s.reps}`));
-                            return `<li>${s.exName} <span style="float:right; font-weight:bold;">${txt}</span></li>`;
+                            let badge = s.method === 'Drop' ? '<span class="method-badge bg-drop" style="margin-left:5px;">Drop</span>' : (s.method === 'RP' ? '<span class="method-badge bg-rp" style="margin-left:5px;">RP</span>' : '');
+                            return `<li>${s.exName} ${badge} <span style="float:right; font-weight:bold;">${txt}</span></li>`;
                         }).join("");
 
                         detailsContainer.innerHTML = `
@@ -1022,10 +1422,61 @@
             }
         }
 
+        // ★ 新機能：部位別の総ボリューム（重量×回数）を計算してグラフを作る処理
+        // 【初心者ポイント】過去の全データ（dailyLogsDB）から部位ごとの重量を集計して、CSSだけで簡単な棒グラフを描画します。
+        function renderVolumeAnalysis() {
+            let volumeByPart = {};
+            let maxVolume = 0;
+
+            // すべての履歴データをループして集計
+            for (let date in dailyLogsDB) {
+                dailyLogsDB[date].sets.forEach(set => {
+                    // ストレッチや有酸素、自重（weightが0）は除外する
+                    if (set.weight > 0 && !set.isCardio && !set.isVideo) {
+                        let vol = set.weight * set.reps;
+                        if (!volumeByPart[set.partName]) volumeByPart[set.partName] = 0;
+                        volumeByPart[set.partName] += vol;
+                        if (volumeByPart[set.partName] > maxVolume) {
+                            maxVolume = volumeByPart[set.partName]; // 一番大きなボリュームを最大値として記憶
+                        }
+                    }
+                });
+            }
+
+            const chartContainer = document.getElementById('volume-chart-bars');
+            chartContainer.innerHTML = "";
+
+            if (Object.keys(volumeByPart).length === 0) {
+                chartContainer.innerHTML = "<p style='text-align:center; color:var(--text-muted); font-size:0.85rem;'>記録された重量データがありません</p>";
+                return;
+            }
+
+            // 集計した部位データをボリュームが多い順に並び替えてグラフ化
+            const sortedParts = Object.keys(volumeByPart).sort((a, b) => volumeByPart[b] - volumeByPart[a]);
+
+            sortedParts.forEach(part => {
+                const vol = volumeByPart[part];
+                // 最大ボリュームを100%とした時の、この部位の割合（%）を計算
+                const percentage = Math.round((vol / maxVolume) * 100);
+                
+                chartContainer.insertAdjacentHTML('beforeend', `
+                    <div class="chart-row">
+                        <div class="chart-label">${part}</div>
+                        <div class="chart-bar-bg">
+                            <div class="chart-bar-fill" style="width: ${percentage}%"></div>
+                        </div>
+                        <div class="chart-value">${vol.toLocaleString()} kg</div>
+                    </div>
+                `);
+            });
+        }
+
+        // カレンダーを開く時に、カレンダーの描画と同時にグラフの描画も実行する
         document.getElementById('show-history-btn').onclick = () => {
             currentCalYear = new Date().getFullYear();
             currentCalMonth = new Date().getMonth();
             renderCalendar(currentCalYear, currentCalMonth);
+            renderVolumeAnalysis(); // ★グラフ描画を実行
             document.getElementById('history-modal').style.display = "flex";
         };
 
@@ -1047,7 +1498,9 @@
         document.getElementById('modal-close-btn').onclick = () => { document.getElementById('finish-modal').style.display = "none"; document.getElementById('roulette-result-area').style.display = "none"; };
         document.getElementById('back-btn').onclick = () => { if(confirm("今日の記録を終了してホームに戻りますか？")) location.reload(); };
         
-        updateStreak(); initButtons();
+        // 初回起動時の処理呼び出し
+        updateStreak(); 
+        initButtons();
     };
     </script>
 </body>
